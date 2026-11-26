@@ -88,14 +88,14 @@ internal fun EatingNavigation(model: CounterViewModel) {
                     onMenu = { scope.launch { drawer.open() } }
                 )
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
-                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::undo, model.busy) }
+                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model.busy) }
                     composable("reports") { ReportsScreen(model.report, model.error) }
                     composable("history") { HistoryScreen(model) }
                     composable("settings") { SettingsScreen(model) }
                 }
             }
         }
-        ConfettiEffect(model.celebrationSequence, if (model.celebrationType == EventType.HEALTHY) ConfettiStyle.Healthy else ConfettiStyle.Avoided, Modifier.matchParentSize())
+        ConfettiEffect(model.celebrationSequence, when (model.celebrationType) { EventType.HEALTHY -> ConfettiStyle.Healthy; EventType.AEROBIC -> ConfettiStyle.Aerobic; else -> ConfettiStyle.Avoided }, Modifier.matchParentSize())
         }
     }
 }

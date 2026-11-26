@@ -16,7 +16,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     private val mutex = Mutex()
     var report by mutableStateOf(EatingReport())
         private set
-    val count: Long get() = report.total + report.healthyTotal + report.avoidedTotal
+    val count: Long get() = report.total + report.healthyTotal + report.avoidedTotal + report.activity.total.count
     var error by mutableStateOf(false)
         private set
     var busy by mutableStateOf(false)
@@ -64,7 +64,13 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
 
     init { reload() }
     fun reload() = refresh()
+    fun addActivity(kind: ActivityKind, minutes: Int) = mutate {
+        repository.addEvent(EventType.AEROBIC, kind, minutes)
+        withContext(Dispatchers.Main) { celebrate(EventType.AEROBIC) }
+        "הפעילות נשמרה"
+    }
     fun increment(type: EventType) {
+        if (type == EventType.AEROBIC) return
         val now = SystemClock.elapsedRealtime()
         if (busy || lastTap?.let { now - it < 700L } == true) return
         lastTap = now

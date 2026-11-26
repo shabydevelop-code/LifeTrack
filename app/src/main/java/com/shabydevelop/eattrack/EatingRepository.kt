@@ -9,10 +9,12 @@ import android.database.DatabaseUtils
 class EatingRepository(context: Context) {
     private val db = EatingDatabase(context.applicationContext)
 
-    fun addEvent(type: EventType): Long {
+    fun addEvent(type: EventType, activity: ActivityKind? = null, minutes: Int = 0): Long {
         val values = ContentValues().apply {
             put("created_at", System.currentTimeMillis())
             put("event_type", type.name)
+            put("activity_kind", activity?.name ?: "")
+            put("minutes", minutes)
         }
         return db.writableDatabase.insertOrThrow("unhealthy_eating_events", null, values)
     }
@@ -52,7 +54,7 @@ class EatingRepository(context: Context) {
             DayCount(label, countRange(start.timeInMillis, end.timeInMillis, EventType.UNHEALTHY), countRange(start.timeInMillis, end.timeInMillis, EventType.HEALTHY), countRange(start.timeInMillis, end.timeInMillis, EventType.AVOIDED))
         }
         fun since(start: java.util.Calendar, type: EventType = EventType.UNHEALTHY) = countRange(start.timeInMillis, now.timeInMillis + 1, type)
-        val first = db.readableDatabase.rawQuery("SELECT MIN(created_at) FROM unhealthy_eating_events", null).use {
+        val first = db.readableDatabase.rawQuery("SELECT MIN(created_at) FROM unhealthy_eating_events WHERE event_type != 'AEROBIC'", null).use {
             if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else null
         }
         val format = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
@@ -61,8 +63,15 @@ class EatingRepository(context: Context) {
         val totalLabel = first?.let { format.format(java.util.Date(it)) + " – " + format.format(today.time) } ?: "אין דיווחים"
         return EatingReport(since(today), since(week), since(month), count(EventType.UNHEALTHY), days,
             format.format(today.time), format.format(week.time) + " – " + format.format(weekEnd.time),
-            format.format(month.time) + " – " + format.format(monthEnd.time), totalLabel, since(today, EventType.HEALTHY), since(week, EventType.HEALTHY), since(month, EventType.HEALTHY), count(EventType.HEALTHY), since(today, EventType.AVOIDED), since(week, EventType.AVOIDED), since(month, EventType.AVOIDED), count(EventType.AVOIDED))
+            format.format(month.time) + " – " + format.format(monthEnd.time), totalLabel, since(today, EventType.HEALTHY), since(week, EventType.HEALTHY), since(month, EventType.HEALTHY), count(EventType.HEALTHY), since(today, EventType.AVOIDED), since(week, EventType.AVOIDED), since(month, EventType.AVOIDED), count(EventType.AVOIDED), activity = ActivityReport(activityStats(today.timeInMillis), activityStats(week.timeInMillis), activityStats(month.timeInMillis), activityStats(0), (0..6).map { offset ->
+            val start = (today.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, -offset) }
+            val end = (start.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 1) }
+            ActivityDay(java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault()).format(start.time), activityStats(start.timeInMillis, end.timeInMillis))
+        }))
     }
+
+    private fun activityStats(start: Long, end: Long = System.currentTimeMillis() + 1): ActivityStats =
+        db.readableDatabase.rawQuery("SELECT COUNT(*), COALESCE(SUM(minutes),0) FROM unhealthy_eating_events WHERE event_type = 'AEROBIC' AND created_at >= ? AND created_at < ?", arrayOf(start.toString(), end.toString())).use { it.moveToFirst(); ActivityStats(it.getLong(0), it.getLong(1)) }
 
     fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage {
         val clauses = mutableListOf<String>()
@@ -81,10 +90,10 @@ class EatingRepository(context: Context) {
             args.add(before.timestamp.toString()); args.add(before.timestamp.toString()); args.add(before.id.toString())
         }
         val rows = mutableListOf<EatingEvent>()
-        db.readableDatabase.query("unhealthy_eating_events", arrayOf("id", "created_at", "event_type", "reasons"),
+        db.readableDatabase.query("unhealthy_eating_events", arrayOf("id", "created_at", "event_type", "reasons", "activity_kind", "minutes"),
             clauses.takeIf { it.isNotEmpty() }?.joinToString(" AND "), args.toTypedArray(), null, null,
             "created_at DESC, id DESC", "31").use {
-            while (it.moveToNext()) rows.add(EatingEvent(it.getLong(0), it.getLong(1), EventType.valueOf(it.getString(2)), it.getString(3).split(',').mapNotNull { code -> EatingReason.entries.firstOrNull { reason -> reason.name == code } }))
+            while (it.moveToNext()) rows.add(EatingEvent(it.getLong(0), it.getLong(1), EventType.valueOf(it.getString(2)), it.getString(3).split(',').mapNotNull { code -> EatingReason.entries.firstOrNull { reason -> reason.name == code } }, ActivityKind.entries.firstOrNull { kind -> kind.name == it.getString(4) }, it.getInt(5)))
         }
         return HistoryPage(rows.take(30), rows.size > 30)
     }
@@ -95,10 +104,14 @@ class EatingRepository(context: Context) {
     fun count(type: EventType): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events", "event_type = ?", arrayOf(type.name))
 }
 
-private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 5) {
+private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 6) {
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE unhealthy_eating_events (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL, event_type TEXT NOT NULL CHECK (event_type IN ('UNHEALTHY','HEALTHY','AVOIDED')), reasons TEXT NOT NULL DEFAULT '')")
+        createEvents(db)
         createIndex(db)
+    }
+
+    private fun createEvents(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE unhealthy_eating_events (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL, event_type TEXT NOT NULL CHECK (event_type IN ('UNHEALTHY','HEALTHY','AVOIDED','AEROBIC')), reasons TEXT NOT NULL DEFAULT '', activity_kind TEXT NOT NULL DEFAULT '', minutes INTEGER NOT NULL DEFAULT 0, CHECK ((event_type = 'AEROBIC' AND minutes > 0 AND activity_kind != '') OR (event_type != 'AEROBIC' AND minutes = 0 AND activity_kind = '')))")
     }
 
     private fun createIndex(db: SQLiteDatabase) {
@@ -114,6 +127,13 @@ private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eatt
         if (oldVersion < 5) {
             db.execSQL("ALTER TABLE unhealthy_eating_events ADD COLUMN event_type TEXT NOT NULL DEFAULT 'UNHEALTHY' CHECK (event_type IN ('UNHEALTHY','HEALTHY','AVOIDED'))")
             db.execSQL("UPDATE unhealthy_eating_events SET event_type = 'HEALTHY' WHERE healthy = 1")
+        }
+        if (oldVersion < 6) {
+            db.execSQL("ALTER TABLE unhealthy_eating_events RENAME TO events_v5")
+            createEvents(db)
+            db.execSQL("INSERT INTO unhealthy_eating_events (id, created_at, event_type, reasons) SELECT id, created_at, event_type, reasons FROM events_v5")
+            db.execSQL("DROP TABLE events_v5")
+            createIndex(db)
         }
     }
 }

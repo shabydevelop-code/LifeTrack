@@ -14,7 +14,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-data class EatingEvent(val id: Long, val timestamp: Long, val type: EventType, val reasons: List<EatingReason> = emptyList())
+data class EatingEvent(val id: Long, val timestamp: Long, val type: EventType, val reasons: List<EatingReason> = emptyList(), val activity: ActivityKind? = null, val minutes: Int = 0)
 data class HistoryPage(val events: List<EatingEvent>, val hasMore: Boolean)
 
 @Composable
@@ -30,7 +30,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
     var pendingDelete by remember { mutableStateOf<EatingEvent?>(null) }
     var loadedSequence by remember { mutableLongStateOf(model.successSequence) }
     val days = period.takeIf { it > 0 }
-    val eventType = when (type) { 1 -> EventType.HEALTHY; 2 -> EventType.UNHEALTHY; 3 -> EventType.AVOIDED; else -> null }
+    val eventType = when (type) { 1 -> EventType.HEALTHY; 2 -> EventType.UNHEALTHY; 3 -> EventType.AVOIDED; 4 -> EventType.AEROBIC; else -> null }
     LaunchedEffect(period, type, model.successSequence, pageCount, retry) {
         if (loadedSequence != model.successSequence) {
             loadedSequence = model.successSequence
@@ -54,14 +54,14 @@ internal fun HistoryScreen(model: CounterViewModel) {
             }
         }
         val types: @Composable () -> Unit = {
-            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "בריאה", 2 to "לא בריאה", 3 to "ויתור"), type) {
+            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "בריאה", 2 to "לא בריאה", 3 to "ויתור", 4 to "אירובית"), type) {
                 type = it; pageCount = 1; rows = emptyList(); more = false; loading = true
             }
         }
         AdaptiveActionPair(filters, types)
         val weights = listOf(0.8f, 1.5f, 2f)
         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Box(Modifier.weight(1f)) { TableHeading(listOf("שעה", "סוג דיווח", "סיבות"), weights) }
+            Box(Modifier.weight(1f)) { TableHeading(listOf("שעה", "סוג דיווח", "פרטים"), weights) }
             Spacer(Modifier.width(UiSpacing.touch))
         }
         if (model.error) Text("לא ניתן להשלים את הפעולה או לרענן את הנתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
@@ -72,15 +72,15 @@ internal fun HistoryScreen(model: CounterViewModel) {
                     Text(date, style = UiTypography.sectionTitle, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(UiSpacing.normal).semantics { heading() })
                 }
                 val time = timeFormat.format(java.util.Date(event.timestamp))
-                val reasons = event.reasons.joinToString(" · ") { it.label }
+                val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else event.reasons.joinToString(" · ") { it.label }
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) {
                 TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
-                    contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "סיבות: $reasons"
+                    contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
                 }) { i ->
                     when (i) {
                         0 -> Text(time, style = UiTypography.tableCell)
-                        1 -> Text(event.type.label, style = UiTypography.tableCell, color = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2] })
+                        1 -> Text(event.type.label, style = UiTypography.tableCell, color = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic })
                         else -> Text(reasons.ifEmpty { "—" }, style = UiTypography.tableCell)
                     }
                 }

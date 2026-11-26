@@ -41,7 +41,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, undo: () -> Unit, busy: Boolean) {
+internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, addActivity: (ActivityKind, Int) -> Unit, busy: Boolean) {
+    var activityDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    if (activityDialog) ActivityDialog(busy, { activityDialog = false }, { kind, minutes -> activityDialog = false; addActivity(kind, minutes) })
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val gap = (maxHeight * 0.014f).coerceIn(UiSpacing.compact, UiSpacing.medium)
     Column(
@@ -58,12 +60,12 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         ReportAction("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) }
         ReportAction("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) }
         ReportAction("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) }
-        OutlinedButton(onClick = { if (!busy) undo() }, enabled = report.total + report.healthyTotal + report.avoidedTotal > 0,
-            modifier = Modifier.heightIn(min = UiSpacing.touch)) { Text("ביטול דיווח אחרון", style = UiTypography.secondaryAction) }
+        ReportAction("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true }
         Spacer(Modifier.height(UiSpacing.small))
         HorizontalDivider()
         Text("סיכום מצטבר", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
         PeriodTable(report.periodRows(false), false)
+        ActivitySummary(report.activity)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
     }
     }
