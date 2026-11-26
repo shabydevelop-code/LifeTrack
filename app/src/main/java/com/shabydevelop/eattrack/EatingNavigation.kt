@@ -83,22 +83,10 @@ internal fun EatingNavigation(model: CounterViewModel) {
         Box(Modifier.fillMaxSize()) {
         Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
-                Row(Modifier.fillMaxWidth().background(UiColors.primary).padding(horizontal = UiSpacing.normal),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { scope.launch { drawer.open() } }) {
-                        androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.large).semantics {
-                            this.contentDescription = "פתיחת תפריט"
-                        }) {
-                            for (i in 1..3) drawLine(Color.White,
-                                androidx.compose.ui.geometry.Offset(UiSpacing.tiny.toPx(), size.height * i / 4),
-                                androidx.compose.ui.geometry.Offset(size.width - UiSpacing.tiny.toPx(), size.height * i / 4),
-                                strokeWidth = UiSpacing.tiny.toPx())
-                        }
-                    }
-                    Text(when (route) { "reports" -> "דוחות אכילה"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; else -> "מעקב אכילה אישי" },
-                        color = Color.White, style = UiTypography.screenTitle,
-                        modifier = Modifier.padding(vertical = UiSpacing.screen).semantics { heading() })
-                }
+                AppHeader(
+                    title = when (route) { "reports" -> "דוחות אכילה"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; else -> "מעקב אכילה אישי" },
+                    onMenu = { scope.launch { drawer.open() } }
+                )
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
                     composable("home") { CounterScreen(model.report, model.error, model::increment, model::undo, model.busy) }
                     composable("reports") { ReportsScreen(model.report, model.error) }

@@ -1,6 +1,10 @@
 package com.shabydevelop.eattrack
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -82,5 +86,28 @@ internal fun ReportAction(label: String, color: Color, enabled: Boolean, onClick
         colors = ButtonDefaults.buttonColors(containerColor = color, contentColor = Color.White,
             disabledContainerColor = color, disabledContentColor = Color.White)) {
         Text(label, style = UiTypography.primaryAction)
+    }
+}
+
+@Composable
+internal fun AppHeader(title: String, onMenu: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().background(UiColors.primary).padding(horizontal = UiSpacing.normal),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onMenu, modifier = Modifier.size(UiSpacing.touch)) {
+            androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.large).semantics {
+                contentDescription = "פתיחת תפריט"
+            }) {
+                for (i in 1..3) drawLine(Color.White,
+                    androidx.compose.ui.geometry.Offset(UiSpacing.tiny.toPx(), size.height * i / 4),
+                    androidx.compose.ui.geometry.Offset(size.width - UiSpacing.tiny.toPx(), size.height * i / 4),
+                    strokeWidth = UiSpacing.tiny.toPx())
+            }
+        }
+        Text(title, modifier = Modifier.weight(1f).padding(vertical = UiSpacing.screen).semantics { heading() },
+            color = Color.White, style = UiTypography.screenTitle,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Spacer(Modifier.width(UiSpacing.touch))
     }
 }
