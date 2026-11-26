@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF1E4064))) {
                     val model: CounterViewModel = viewModel()
-                    CounterScreen(model.count, model.error, model::increment)
+                    CounterScreen(model.count, model.error, model::increment, model::reset)
                 }
             }
         }
@@ -34,7 +34,17 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit) {
+private fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit, reset: () -> Unit) {
+    var confirmReset by remember { mutableStateOf(false) }
+    if (confirmReset) {
+        AlertDialog(
+            onDismissRequest = { confirmReset = false },
+            title = { Text("איפוס דיווחים") },
+            text = { Text("כל הדיווחים יימחקו לצמיתות. להמשיך?") },
+            confirmButton = { TextButton(onClick = { confirmReset = false; reset() }) { Text("איפוס") } },
+            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("ביטול") } }
+        )
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
         Column(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
             Text(
@@ -57,7 +67,8 @@ private fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White)
                 ) { Text("אכילה לא בריאה", style = MaterialTheme.typography.titleLarge) }
                 Text("מספר דיווחים: $count", style = MaterialTheme.typography.titleMedium)
-                if (error) Text("לא ניתן לשמור את הדיווח. נסה שוב.", color = MaterialTheme.colorScheme.error)
+                OutlinedButton(onClick = { confirmReset = true }, enabled = count > 0) { Text("איפוס") }
+                if (error) Text("לא ניתן לעדכן את הנתונים. נסה שוב.", color = MaterialTheme.colorScheme.error)
             }
         }
     }

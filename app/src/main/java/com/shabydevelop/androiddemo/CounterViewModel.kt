@@ -18,15 +18,16 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     var error by mutableStateOf(false)
         private set
 
-    init { refresh(false) }
-    fun increment() = refresh(true)
+    init { refresh() }
+    fun increment() = refresh { repository.addEvent() }
+    fun reset() = refresh { repository.reset() }
 
-    private fun refresh(add: Boolean) {
+    private fun refresh(action: () -> Unit = {}) {
         viewModelScope.launch {
             mutex.withLock {
                 try {
                     count = withContext(Dispatchers.IO) {
-                        if (add) repository.addEvent()
+                        action()
                         repository.count()
                     }
                     error = false

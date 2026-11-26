@@ -16,6 +16,10 @@ class EatingRepository(context: Context) {
         db.writableDatabase.insertOrThrow("unhealthy_eating_events", null, values)
     }
 
+    fun reset() {
+        db.writableDatabase.delete("unhealthy_eating_events", null, null)
+    }
+
     fun count(): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events")
 }
 
