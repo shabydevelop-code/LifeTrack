@@ -33,8 +33,14 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         private set
     var celebrationSequence by mutableLongStateOf(0L)
         private set
+    var celebrationType by mutableStateOf(EventType.AVOIDED)
+        private set
+    private fun celebrate(type: EventType) {
+        celebrationType = type
+        celebrationSequence++
+    }
     private fun closeReasons() {
-        if (pendingReasonId != null && pendingReasonType == EventType.AVOIDED) celebrationSequence++
+        if (pendingReasonId != null && pendingReasonType == EventType.AVOIDED) celebrate(EventType.AVOIDED)
         pendingReasonId = null
         reasonError = false
     }
@@ -64,7 +70,10 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         lastTap = now
         mutate {
             val id = repository.addEvent(type)
-            if (type != EventType.HEALTHY) withContext(Dispatchers.Main) { pendingReasonType = type; pendingReasonId = id; reasonError = false }
+            withContext(Dispatchers.Main) {
+                if (type == EventType.HEALTHY) celebrate(type)
+                else { pendingReasonType = type; pendingReasonId = id; reasonError = false }
+            }
             "דיווח ${type.label} נשמר"
         }
     }

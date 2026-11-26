@@ -107,7 +107,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
                 }
             }
         }
-        ConfettiEffect(model.celebrationSequence, Modifier.matchParentSize())
+        ConfettiEffect(model.celebrationSequence, if (model.celebrationType == EventType.HEALTHY) ConfettiStyle.Healthy else ConfettiStyle.Avoided, Modifier.matchParentSize())
         }
     }
 }

@@ -14,19 +14,26 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import kotlin.random.Random
 
+internal data class ConfettiStyle(val durationMillis: Int, val particleCount: Int, val colors: List<Color>) {
+    companion object {
+        val Healthy = ConfettiStyle(800, 28, listOf(UiColors.healthy, Color(0xFF22C55E), Color(0xFF86EFAC)))
+        val Avoided = ConfettiStyle(1500, 65, listOf(UiColors.healthy, UiColors.avoided, Color(0xFFF59E0B), Color(0xFFDB2777), Color(0xFF9333EA)))
+    }
+}
+
 @Composable
-internal fun ConfettiEffect(sequence: Long, modifier: Modifier = Modifier) {
+internal fun ConfettiEffect(sequence: Long, style: ConfettiStyle, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val progress = remember { Animatable(1f) }
     var handled by rememberSaveable { mutableLongStateOf(sequence) }
     var visible by remember { mutableStateOf(false) }
-    val particles = remember(sequence) {
+    val particles = remember(sequence, style) {
         val random = Random(sequence)
-        List(65) { FloatArray(5) { random.nextFloat() } }
+        List(style.particleCount) { FloatArray(5) { random.nextFloat() } }
     }
-    val colors = listOf(UiColors.healthy, UiColors.avoided, Color(0xFFF59E0B), Color(0xFFDB2777), Color(0xFF9333EA))
+    val colors = style.colors
     LaunchedEffect(sequence) {
-        if (sequence <= handled) return@LaunchedEffect
+        if (sequence == handled) return@LaunchedEffect
         handled = sequence
         if (android.os.Build.VERSION.SDK_INT >= 26 && !android.animation.ValueAnimator.areAnimatorsEnabled()) {
             visible = false
@@ -38,7 +45,7 @@ internal fun ConfettiEffect(sequence: Long, modifier: Modifier = Modifier) {
         }
         progress.snapTo(0f)
         visible = true
-        try { progress.animateTo(1f, tween(1500, easing = LinearEasing)) }
+        try { progress.animateTo(1f, tween(style.durationMillis, easing = LinearEasing)) }
         finally { visible = false }
     }
     if (visible) Canvas(modifier) {
