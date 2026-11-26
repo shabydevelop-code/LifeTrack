@@ -52,9 +52,11 @@ internal fun EatingNavigation(model: CounterViewModel) {
         onDispose { owner.lifecycle.removeObserver(observer) }
     }
     ModalNavigationDrawer(
+        modifier = Modifier.fillMaxSize().background(Color.White)
+            .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.statusBars).union(WindowInsets.displayCutout)),
         drawerState = drawer,
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(windowInsets = WindowInsets(0, 0, 0, 0)) {
                 Text("EatTrack", Modifier.padding(20.dp), style = MaterialTheme.typography.titleLarge)
                 listOf("home" to "מסך ראשי", "reports" to "דוחות").forEach { (target, label) ->
                     NavigationDrawerItem(label = { Text(label) }, selected = route == target,
@@ -73,7 +75,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
         }
     ) {
         Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+            Column(Modifier.fillMaxSize()) {
                 Row(Modifier.fillMaxWidth().background(Color(0xFF1E4064)).padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { scope.launch { drawer.open() } }) {
