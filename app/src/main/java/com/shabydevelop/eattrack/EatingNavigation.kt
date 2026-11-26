@@ -28,6 +28,14 @@ internal fun EatingNavigation(model: CounterViewModel) {
     BackHandler(drawer.isOpen) { scope.launch { drawer.close() } }
     val context = LocalContext.current
     val version = remember(context) { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "" }
+    val view = androidx.compose.ui.platform.LocalView.current
+    var handledSequence by androidx.compose.runtime.saveable.rememberSaveable { mutableLongStateOf(model.successSequence) }
+    LaunchedEffect(model.successSequence) {
+        if (model.successSequence > handledSequence) {
+            handledSequence = model.successSequence
+            view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+        }
+    }
     LaunchedEffect(route) {
         while (true) {
             model.reload()
@@ -83,7 +91,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
                         modifier = Modifier.padding(vertical = 16.dp).semantics { heading() })
                 }
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
-                    composable("home") { CounterScreen(model.report, model.error, model::increment) }
+                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::undo, model.busy, model.feedback) }
                     composable("reports") { ReportsScreen(model.report, model.error, model::reset) }
                 }
             }

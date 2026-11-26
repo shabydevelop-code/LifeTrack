@@ -16,6 +16,11 @@ class EatingRepository(context: Context) {
         db.writableDatabase.insertOrThrow("unhealthy_eating_events", null, values)
     }
 
+    fun undoLast(): Boolean {
+        return db.writableDatabase.delete("unhealthy_eating_events",
+            "id = (SELECT id FROM unhealthy_eating_events ORDER BY id DESC LIMIT 1)", null) > 0
+    }
+
     fun reset() {
         db.writableDatabase.delete("unhealthy_eating_events", null, null)
     }
