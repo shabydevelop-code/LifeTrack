@@ -80,6 +80,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
             }
         }
     ) {
+        Box(Modifier.fillMaxSize()) {
         Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 Row(Modifier.fillMaxWidth().background(UiColors.primary).padding(horizontal = UiSpacing.normal),
@@ -105,6 +106,8 @@ internal fun EatingNavigation(model: CounterViewModel) {
                     composable("settings") { SettingsScreen(model) }
                 }
             }
+        }
+        ConfettiEffect(model.celebrationSequence, Modifier.matchParentSize())
         }
     }
 }

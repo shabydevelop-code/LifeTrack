@@ -31,7 +31,14 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         private set
     var reasonError by mutableStateOf(false)
         private set
-    fun dismissReasons() { if (!busy) { pendingReasonId = null; reasonError = false } }
+    var celebrationSequence by mutableLongStateOf(0L)
+        private set
+    private fun closeReasons() {
+        if (pendingReasonId != null && pendingReasonType == EventType.AVOIDED) celebrationSequence++
+        pendingReasonId = null
+        reasonError = false
+    }
+    fun dismissReasons() { if (!busy) closeReasons() }
     fun saveReasons(reasons: Set<EatingReason>) {
         val id = pendingReasonId ?: return
         if (busy) return
@@ -40,7 +47,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 mutex.withLock { withContext(Dispatchers.IO) { repository.saveReasons(id, reasons, pendingReasonType) } }
-                pendingReasonId = null
+                closeReasons()
                 feedback = "הסיבות נשמרו"
                 successSequence++
             } catch (e: android.database.SQLException) { reasonError = true }
