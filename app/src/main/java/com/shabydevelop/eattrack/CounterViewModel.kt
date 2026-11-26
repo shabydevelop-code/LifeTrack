@@ -77,6 +77,10 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
             "דיווח ${type.label} נשמר"
         }
     }
+    fun deleteEvent(id: Long) = mutate {
+        if (!repository.deleteEvent(id)) throw android.database.SQLException("Report not found")
+        "הדיווח נמחק"
+    }
     fun undo() = mutate {
         if (repository.undoLast()) "הדיווח האחרון בוטל" else "אין דיווח לביטול"
     }

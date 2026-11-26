@@ -23,6 +23,9 @@ class EatingRepository(context: Context) {
             throw android.database.SQLException("Report not found")
     }
 
+    fun deleteEvent(id: Long): Boolean =
+        db.writableDatabase.delete("unhealthy_eating_events", "id = ?", arrayOf(id.toString())) == 1
+
     fun undoLast(): Boolean {
         return db.writableDatabase.delete("unhealthy_eating_events",
             "id = (SELECT id FROM unhealthy_eating_events ORDER BY id DESC LIMIT 1)", null) > 0
