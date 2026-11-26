@@ -35,7 +35,7 @@ class EatingRepository(context: Context) {
             add(java.util.Calendar.DAY_OF_YEAR, -(get(java.util.Calendar.DAY_OF_WEEK) - java.util.Calendar.SUNDAY))
         }
         val month = (today.clone() as java.util.Calendar).apply { set(java.util.Calendar.DAY_OF_MONTH, 1) }
-        val days = (6 downTo 0).map { offset ->
+        val days = (0..6).map { offset ->
             val start = (today.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, -offset) }
             val end = (start.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 1) }
             val label = java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault()).format(start.time)
