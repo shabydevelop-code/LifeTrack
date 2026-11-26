@@ -27,10 +27,10 @@ internal fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityK
     var kind by rememberSaveable { mutableStateOf(ActivityKind.WALK.name) }
     var minutes by rememberSaveable { mutableIntStateOf(30) }
     AlertDialog(onDismissRequest = dismiss,
-        title = { Text("פעילות אירובית", style = UiTypography.sectionTitle) },
+        title = { Text("פעילות אירובית", color = UiColors.aerobic, style = UiTypography.sectionTitle) },
         text = {
             Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-                Text("סוג הפעילות", style = UiTypography.body)
+                Text("סוג הפעילות", color = UiColors.aerobic, style = UiTypography.body)
                 Column(Modifier.selectableGroup()) {
                     ActivityKind.entries.forEach { item ->
                         Row(Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch).selectable(kind == item.name, role = Role.RadioButton, onClick = { kind = item.name }), verticalAlignment = Alignment.CenterVertically) {
@@ -39,7 +39,7 @@ internal fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityK
                         }
                     }
                 }
-                Text("משך הפעילות בדקות", style = UiTypography.body)
+                Text("משך הפעילות בדקות", color = UiColors.aerobic, style = UiTypography.body)
                 Column(Modifier.selectableGroup()) {
                     listOf(15, 30, 45, 60).chunked(2).forEach { pair ->
                         Row(horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
@@ -54,18 +54,18 @@ internal fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityK
                 }
             }
         },
-        confirmButton = { TextButton(enabled = !busy, onClick = { save(ActivityKind.valueOf(kind), minutes) }) { Text("שמירה", style = UiTypography.secondaryAction) } },
-        dismissButton = { TextButton(onClick = dismiss) { Text("ביטול", style = UiTypography.secondaryAction) } })
+        confirmButton = { AppTextButton(enabled = !busy, onClick = { save(ActivityKind.valueOf(kind), minutes) }) { Text("שמירה", style = UiTypography.secondaryAction) } },
+        dismissButton = { AppTextButton(onClick = dismiss) { Text("ביטול", style = UiTypography.secondaryAction) } })
 }
 
 @Composable
 internal fun ActivitySummary(report: ActivityReport) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
-        SectionHeader("פעילות אירובית", UiColors.aerobic)
+        SectionHeader("סיכום פעילות אירובית", UiColors.aerobic)
         val entries = listOf("היום" to report.today, "השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total)
         val weights = listOf(1f, 1f, 1f, 1f)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(entries.map { it.first }, weights)
+            TableHeading(entries.map { it.first }, weights, List(entries.size) { UiColors.aerobic })
             HorizontalDivider()
             TableLine(weights, Modifier.padding(vertical = UiSpacing.normal)) { i ->
                 val (label, stats) = entries[i]
@@ -82,7 +82,7 @@ internal fun ActivitySummary(report: ActivityReport) {
 internal fun ActivityChart(days: List<ActivityDay>) {
     val max = (days.maxOfOrNull { it.stats.minutes } ?: 0L).coerceAtLeast(1L)
     Column(verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-        SectionHeader("פעילות אירובית · דקות בשבעת הימים האחרונים")
+        SectionHeader("פעילות אירובית · דקות בשבעת הימים האחרונים", UiColors.aerobic)
         days.forEach { day ->
             Row(Modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = "${day.label}: ${day.stats.minutes} דקות, ${day.stats.count} פעילויות" }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
                 Text(day.label, style = UiTypography.tableCell)

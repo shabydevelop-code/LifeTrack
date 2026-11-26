@@ -46,8 +46,8 @@ internal fun ReasonDialog(model: CounterViewModel) {
                     color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             }
         },
-        confirmButton = { TextButton(enabled = selected != null && !model.busy,
+        confirmButton = { AppTextButton(enabled = selected != null && !model.busy,
             onClick = { model.saveReasons(options.filter { it.name == selected }.toSet()) }) { Text("שמירה", style = UiTypography.secondaryAction) } },
-        dismissButton = { TextButton(enabled = !model.busy, onClick = model::dismissReasons) { Text("דילוג", style = UiTypography.secondaryAction) } }
+        dismissButton = { AppTextButton(enabled = !model.busy, onClick = model::dismissReasons) { Text("דילוג", style = UiTypography.secondaryAction) } }
     )
 }

@@ -51,7 +51,7 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap)
     ) {
-        SectionHeader("סיכום היום · " + report.todayLabel)
+        SectionHeader("סיכום אכילה יומי · " + report.todayLabel)
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
             CompactSummary("בריאה", report.healthyToday, Modifier.weight(1f).fillMaxHeight())
             CompactSummary("לא בריאה", report.today, Modifier.weight(1f).fillMaxHeight())
@@ -63,7 +63,7 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         ReportAction("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true }
         Spacer(Modifier.height(UiSpacing.small))
         HorizontalDivider()
-        SectionHeader("סיכום מצטבר")
+        SectionHeader("סיכום אכילה מצטבר")
         PeriodTable(report.periodRows(false), false)
         ActivitySummary(report.activity)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
@@ -71,17 +71,3 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
     }
 }
 
-@Composable
-private fun CompactSummary(label: String, count: Long, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.semantics(mergeDescendants = true) {},
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = UiSpacing.compact, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
-            Text(label, style = UiTypography.tableHeading,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            Text(count.toString(), style = UiTypography.counter,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-        }
-    }
-}

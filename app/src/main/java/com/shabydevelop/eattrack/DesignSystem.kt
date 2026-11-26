@@ -2,6 +2,8 @@ package com.shabydevelop.eattrack
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyListState
@@ -34,7 +36,11 @@ internal object UiSpacing {
     val screen = 16.dp
     val large = 24.dp
     val touch = 48.dp
-    val action = 56.dp
+    val action = touch
+}
+
+internal object UiShapes {
+    val control = RoundedCornerShape(8.dp)
 }
 
 internal object UiColors {
@@ -51,13 +57,13 @@ internal object UiTypography {
 
     val screenTitle = style(24, 32, FontWeight.SemiBold)
     val sectionTitle = style(20, 28, FontWeight.Medium)
-    val primaryAction = style(18, 24, FontWeight.Medium)
+    val primaryAction = style(16, 24, FontWeight.Medium)
     val body = style(16, 24)
     val secondaryAction = style(16, 24, FontWeight.Medium)
     val tableCell = style(14, 20)
     val tableHeading = style(14, 20, FontWeight.Medium)
     val supporting = style(12, 16)
-    val counter = style(24, 32, FontWeight.SemiBold)
+    val counter = style(18, 24, FontWeight.SemiBold)
     val material = Typography(
         headlineSmall = counter, titleLarge = screenTitle, titleMedium = sectionTitle,
         titleSmall = tableHeading, bodyLarge = body, bodyMedium = body,
@@ -90,10 +96,7 @@ internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composab
 
 @Composable
 internal fun ReportAction(label: String, color: Color, enabled: Boolean, onClick: () -> Unit) {
-    Button(onClick = onClick, enabled = enabled,
-        modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.action),
-        colors = ButtonDefaults.buttonColors(containerColor = color, contentColor = Color.White,
-            disabledContainerColor = color, disabledContentColor = Color.White)) {
+    AppOutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth(), color = color) {
         Text(label, style = UiTypography.primaryAction)
     }
 }
@@ -159,3 +162,32 @@ internal fun Modifier.lazyScrollIndicator(state: LazyListState): Modifier =
             span / total to (start / (total - span).coerceAtLeast(0.01f))
         }
     }.padding(end = UiSpacing.normal)
+
+@Composable
+internal fun AppOutlinedButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, color: Color = UiColors.primary, content: @Composable RowScope.() -> Unit) {
+    OutlinedButton(onClick = onClick, modifier = modifier.heightIn(min = UiSpacing.touch), enabled = enabled,
+        shape = UiShapes.control, border = BorderStroke(1.dp, if (enabled) color else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = color),
+        contentPadding = PaddingValues(horizontal = UiSpacing.medium, vertical = UiSpacing.small), content = content)
+}
+
+@Composable
+internal fun AppTextButton(onClick: () -> Unit, enabled: Boolean = true, color: Color = UiColors.primary, content: @Composable RowScope.() -> Unit) {
+    TextButton(onClick = onClick, enabled = enabled, modifier = Modifier.heightIn(min = UiSpacing.touch),
+        shape = UiShapes.control, colors = ButtonDefaults.textButtonColors(contentColor = color), content = content)
+}
+
+@Composable
+internal fun CompactSummary(label: String, count: Long, modifier: Modifier = Modifier) {
+    OutlinedCard(modifier = modifier.semantics(mergeDescendants = true) {},
+        shape = UiShapes.control) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = UiSpacing.compact, vertical = UiSpacing.small),
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(UiSpacing.tiny)) {
+            Text(label, style = UiTypography.tableHeading,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            Text(count.toString(), style = UiTypography.counter,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        }
+    }
+}
