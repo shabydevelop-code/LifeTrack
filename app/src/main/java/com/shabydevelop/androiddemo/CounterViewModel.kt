@@ -1,20 +1,39 @@
 package com.shabydevelop.androiddemo
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.compose.runtime.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-class CounterViewModel(private val state: SavedStateHandle) : ViewModel() {
-    var count by mutableIntStateOf(state.get<Int>("count") ?: 0)
+class CounterViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = EatingRepository(application)
+    private val mutex = Mutex()
+    var count by mutableLongStateOf(0L)
+        private set
+    var error by mutableStateOf(false)
         private set
 
-    fun increment() = update(count + 1)
-    fun reset() = update(0)
+    init { refresh(false) }
+    fun increment() = refresh(true)
 
-    private fun update(value: Int) {
-        count = value
-        state["count"] = value
+    private fun refresh(add: Boolean) {
+        viewModelScope.launch {
+            mutex.withLock {
+                try {
+                    count = withContext(Dispatchers.IO) {
+                        if (add) repository.addEvent()
+                        repository.count()
+                    }
+                    error = false
+                } catch (e: android.database.SQLException) {
+                    error = true
+                }
+            }
+        }
     }
 }

@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF1E4064))) {
                     val model: CounterViewModel = viewModel()
-                    CounterScreen(model.count, model::increment, model::reset)
+                    CounterScreen(model.count, model.error, model::increment)
                 }
             }
         }
@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun CounterScreen(count: Int, increment: () -> Unit, reset: () -> Unit) {
+private fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit) {
     Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
         Column(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
             Text(
@@ -51,9 +51,13 @@ private fun CounterScreen(count: Int, increment: () -> Unit, reset: () -> Unit) 
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
             ) {
-                Text(count.toString(), style = MaterialTheme.typography.displayMedium)
-                Button(onClick = increment) { Text("לחץ כאן") }
-                OutlinedButton(onClick = reset) { Text("איפוס") }
+                Button(
+                    onClick = increment,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White)
+                ) { Text("אכילה לא בריאה", style = MaterialTheme.typography.titleLarge) }
+                Text("מספר דיווחים: $count", style = MaterialTheme.typography.titleMedium)
+                if (error) Text("לא ניתן לשמור את הדיווח. נסה שוב.", color = MaterialTheme.colorScheme.error)
             }
         }
     }
