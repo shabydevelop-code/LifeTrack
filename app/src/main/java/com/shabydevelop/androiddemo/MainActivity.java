@@ -2,6 +2,10 @@ package com.shabydevelop.androiddemo;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Build;
+import android.graphics.Insets;
+import android.view.WindowInsets;
+import android.graphics.Color;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -16,23 +20,37 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) count = savedInstanceState.getInt("count", 0);
 
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        root.setBackgroundColor(Color.WHITE);
+        if (Build.VERSION.SDK_INT >= 30) {
+            getWindow().setDecorFitsSystemWindows(false);
+            root.setOnApplyWindowInsetsListener((v, insets) -> {
+                Insets safe = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+                v.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+                return insets;
+            });
+        } else {
+            root.setFitsSystemWindows(true);
+        }
+
+        TextView header = new TextView(this);
+        header.setText("מעקב אכילה אישי");
+        header.setTextSize(22);
+        header.setTextColor(Color.WHITE);
+        header.setBackgroundColor(Color.rgb(30, 64, 100));
+        header.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        header.setPadding(dp(20), dp(16), dp(20), dp(16));
+        if (Build.VERSION.SDK_INT >= 28) header.setAccessibilityHeading(true);
+        root.addView(header, new LinearLayout.LayoutParams(-1, -2));
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setGravity(Gravity.CENTER);
         layout.setPadding(dp(24), dp(24), dp(24), dp(24));
         layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
-        TextView title = new TextView(this);
-        title.setText("אפליקציית הדגמה");
-        title.setTextSize(26);
-        title.setGravity(Gravity.CENTER);
-        layout.addView(title);
-
-        TextView subtitle = new TextView(this);
-        subtitle.setText("Android Demo");
-        subtitle.setTextSize(16);
-        subtitle.setGravity(Gravity.CENTER);
-        layout.addView(subtitle);
 
         counter = new TextView(this);
         counter.setTextSize(40);
@@ -51,7 +69,9 @@ public class MainActivity extends Activity {
         reset.setOnClickListener(v -> { count = 0; counter.setText("0"); });
         layout.addView(reset);
 
-        setContentView(layout);
+        root.addView(layout, new LinearLayout.LayoutParams(-1, 0, 1f));
+        setContentView(root);
+        root.requestApplyInsets();
     }
 
     @Override protected void onSaveInstanceState(Bundle outState) {
