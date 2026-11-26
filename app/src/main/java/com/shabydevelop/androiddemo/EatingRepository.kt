@@ -20,6 +20,32 @@ class EatingRepository(context: Context) {
         db.writableDatabase.delete("unhealthy_eating_events", null, null)
     }
 
+    fun report(): EatingReport {
+        val now = java.util.Calendar.getInstance()
+        val today = (now.clone() as java.util.Calendar).apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+        }
+        val week = (today.clone() as java.util.Calendar).apply {
+            add(java.util.Calendar.DAY_OF_YEAR, -(get(java.util.Calendar.DAY_OF_WEEK) - java.util.Calendar.SUNDAY))
+        }
+        val month = (today.clone() as java.util.Calendar).apply { set(java.util.Calendar.DAY_OF_MONTH, 1) }
+        val days = (6 downTo 0).map { offset ->
+            val start = (today.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, -offset) }
+            val end = (start.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 1) }
+            val label = java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault()).format(start.time)
+            DayCount(label, DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events",
+                "created_at >= ? AND created_at < ?", arrayOf(start.timeInMillis.toString(), end.timeInMillis.toString())))
+        }
+        fun since(start: java.util.Calendar) = DatabaseUtils.queryNumEntries(db.readableDatabase,
+            "unhealthy_eating_events", "created_at >= ? AND created_at <= ?", arrayOf(start.timeInMillis.toString(), now.timeInMillis.toString()))
+        val history = mutableListOf<Long>()
+        db.readableDatabase.rawQuery("SELECT created_at FROM unhealthy_eating_events ORDER BY created_at DESC, id DESC", null).use {
+            while (it.moveToNext()) history.add(it.getLong(0))
+        }
+        return EatingReport(since(today), since(week), since(month), count(), days, history)
+    }
+
     fun count(): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events")
 }
 

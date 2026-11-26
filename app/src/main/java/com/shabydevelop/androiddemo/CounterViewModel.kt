@@ -13,12 +13,14 @@ import kotlinx.coroutines.sync.withLock
 class CounterViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = EatingRepository(application)
     private val mutex = Mutex()
-    var count by mutableLongStateOf(0L)
+    var report by mutableStateOf(EatingReport())
         private set
+    val count: Long get() = report.total
     var error by mutableStateOf(false)
         private set
 
     init { refresh() }
+    fun reload() = refresh()
     fun increment() = refresh { repository.addEvent() }
     fun reset() = refresh { repository.reset() }
 
@@ -26,9 +28,9 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             mutex.withLock {
                 try {
-                    count = withContext(Dispatchers.IO) {
+                    report = withContext(Dispatchers.IO) {
                         action()
-                        repository.count()
+                        repository.report()
                     }
                     error = false
                 } catch (e: android.database.SQLException) {

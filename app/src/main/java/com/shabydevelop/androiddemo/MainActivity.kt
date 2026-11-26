@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF1E4064))) {
                     val model: CounterViewModel = viewModel()
-                    CounterScreen(model.count, model.error, model::increment, model::reset)
+                    EatingNavigation(model)
                 }
             }
         }
@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit, reset: () -> Unit) {
+internal fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit, reset: () -> Unit) {
     var confirmReset by remember { mutableStateOf(false) }
     if (confirmReset) {
         AlertDialog(
@@ -45,19 +45,8 @@ private fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit, re
             dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("ביטול") } }
         )
     }
-    Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-        Column(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-            Text(
-                text = "מעקב אכילה אישי",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth()
-                    .background(Color(0xFF1E4064))
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
-                    .semantics { heading() }
-            )
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(24.dp),
+                modifier = Modifier.fillMaxSize().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
             ) {
@@ -70,6 +59,4 @@ private fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit, re
                 OutlinedButton(onClick = { confirmReset = true }, enabled = count > 0) { Text("איפוס") }
                 if (error) Text("לא ניתן לעדכן את הנתונים. נסה שוב.", color = MaterialTheme.colorScheme.error)
             }
-        }
-    }
 }
