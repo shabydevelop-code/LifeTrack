@@ -61,7 +61,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
         drawerContent = {
             ModalDrawerSheet(windowInsets = WindowInsets(0, 0, 0, 0)) {
                 Text("EatTrack", Modifier.padding(20.dp), style = MaterialTheme.typography.titleLarge)
-                listOf("home" to "מסך ראשי", "reports" to "דוחות").forEach { (target, label) ->
+                listOf("home" to "מסך ראשי", "reports" to "דוחות", "history" to "היסטוריית דיווחים", "settings" to "הגדרות").forEach { (target, label) ->
                     NavigationDrawerItem(label = { Text(label) }, selected = route == target,
                         onClick = {
                             nav.navigate(target) {
@@ -91,13 +91,15 @@ internal fun EatingNavigation(model: CounterViewModel) {
                                 strokeWidth = 2.dp.toPx())
                         }
                     }
-                    Text(if (route == "reports") "דוחות אכילה" else "מעקב אכילה אישי",
+                    Text(when (route) { "reports" -> "דוחות אכילה"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; else -> "מעקב אכילה אישי" },
                         color = Color.White, style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(vertical = 16.dp).semantics { heading() })
                 }
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
                     composable("home") { CounterScreen(model.report, model.error, model::increment, model::undo, model.busy) }
-                    composable("reports") { ReportsScreen(model.report, model.error, model::reset, model.busy) }
+                    composable("reports") { ReportsScreen(model.report, model.error) }
+                    composable("history") { HistoryScreen(model) }
+                    composable("settings") { SettingsScreen(model) }
                 }
             }
         }

@@ -40,6 +40,9 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     }
     fun reset() = mutate { repository.reset(); "ההיסטוריה נמחקה" }
 
+    suspend fun historyPage(days: Int?, healthy: Boolean?, before: EatingEvent?): HistoryPage =
+        withContext(Dispatchers.IO) { repository.historyPage(days, healthy, before) }
+
     private fun mutate(action: () -> String) {
         if (busy) return
         busy = true
