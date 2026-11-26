@@ -63,7 +63,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
         drawerState = drawer,
         drawerContent = {
             ModalDrawerSheet(windowInsets = WindowInsets(0, 0, 0, 0)) {
-                Text("EatTrack", Modifier.padding(20.dp), style = MaterialTheme.typography.titleLarge)
+                Text("מעקב אכילה אישי", Modifier.padding(20.dp).semantics { heading() }, style = MaterialTheme.typography.titleLarge)
                 listOf("home" to "מסך ראשי", "reports" to "דוחות", "history" to "היסטוריית דיווחים", "settings" to "הגדרות").forEach { (target, label) ->
                     NavigationDrawerItem(label = { Text(label) }, selected = route == target,
                         onClick = {
