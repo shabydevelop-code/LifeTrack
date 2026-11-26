@@ -12,7 +12,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-data class EatingEvent(val id: Long, val timestamp: Long, val healthy: Boolean, val reasons: List<EatingReason> = emptyList())
+data class EatingEvent(val id: Long, val timestamp: Long, val type: EventType, val reasons: List<EatingReason> = emptyList())
 data class HistoryPage(val events: List<EatingEvent>, val hasMore: Boolean)
 
 @Composable
@@ -26,12 +26,12 @@ internal fun HistoryScreen(model: CounterViewModel) {
     var error by remember { mutableStateOf(false) }
     var retry by remember { mutableIntStateOf(0) }
     val days = period.takeIf { it > 0 }
-    val healthy = when (type) { 1 -> true; 2 -> false; else -> null }
+    val eventType = when (type) { 1 -> EventType.HEALTHY; 2 -> EventType.UNHEALTHY; 3 -> EventType.AVOIDED; else -> null }
     LaunchedEffect(period, type, model.successSequence, pageCount, retry) {
         loading = true
         error = false
         try {
-            val page = model.historyPage(days, healthy, if (pageCount == 1) null else rows.lastOrNull())
+            val page = model.historyPage(days, eventType, if (pageCount == 1) null else rows.lastOrNull())
             rows = if (pageCount == 1) page.events else rows + page.events
             more = page.hasMore
         } catch (e: android.database.SQLException) { error = true }
@@ -43,7 +43,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
         HistoryFilter("תקופה", listOf(7 to "7 ימים", 30 to "30 ימים", 0 to "הכל"), period) {
             period = it; pageCount = 1; rows = emptyList(); more = false; loading = true
         }
-        HistoryFilter("סוג דיווח", listOf(0 to "הכל", 1 to "אכילה בריאה", 2 to "אכילה לא בריאה"), type) {
+        HistoryFilter("סוג דיווח", listOf(0 to "הכל", 1 to "אכילה בריאה", 2 to "אכילה לא בריאה", 3 to "ויתור על פיתוי"), type) {
             type = it; pageCount = 1; rows = emptyList(); more = false; loading = true
         }
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -54,8 +54,8 @@ internal fun HistoryScreen(model: CounterViewModel) {
                 }
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp).semantics(mergeDescendants = true) {}) {
                     Text(timeFormat.format(java.util.Date(event.timestamp)), Modifier.weight(1f))
-                    Text(if (event.healthy) "אכילה בריאה" else "אכילה לא בריאה", Modifier.weight(2f),
-                        color = if (event.healthy) Color(0xFF166534) else Color(0xFFB91C1C))
+                    Text(event.type.label, Modifier.weight(2f),
+                        color = when (event.type) { EventType.HEALTHY -> Color(0xFF166534); EventType.UNHEALTHY -> Color(0xFFB91C1C); EventType.AVOIDED -> Color(0xFF1D4ED8) })
                 }
                 if (event.reasons.isNotEmpty()) Text("סיבות: " + event.reasons.joinToString(" · ") { it.label }, style = MaterialTheme.typography.bodyMedium)
                 HorizontalDivider()

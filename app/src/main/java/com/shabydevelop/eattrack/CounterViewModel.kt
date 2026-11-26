@@ -16,7 +16,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     private val mutex = Mutex()
     var report by mutableStateOf(EatingReport())
         private set
-    val count: Long get() = report.total + report.healthyTotal
+    val count: Long get() = report.total + report.healthyTotal + report.avoidedTotal
     var error by mutableStateOf(false)
         private set
     var busy by mutableStateOf(false)
@@ -26,6 +26,8 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     var successSequence by mutableLongStateOf(0L)
         private set
     var pendingReasonId by mutableStateOf<Long?>(null)
+        private set
+    var pendingReasonType by mutableStateOf(EventType.UNHEALTHY)
         private set
     var reasonError by mutableStateOf(false)
         private set
@@ -37,7 +39,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         reasonError = false
         viewModelScope.launch {
             try {
-                mutex.withLock { withContext(Dispatchers.IO) { repository.saveReasons(id, reasons) } }
+                mutex.withLock { withContext(Dispatchers.IO) { repository.saveReasons(id, reasons, pendingReasonType) } }
                 pendingReasonId = null
                 feedback = "הסיבות נשמרו"
                 successSequence++
@@ -49,14 +51,14 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
 
     init { reload() }
     fun reload() = refresh()
-    fun increment(healthy: Boolean) {
+    fun increment(type: EventType) {
         val now = SystemClock.elapsedRealtime()
         if (busy || lastTap?.let { now - it < 700L } == true) return
         lastTap = now
         mutate {
-            val id = repository.addEvent(healthy)
-            if (!healthy) withContext(Dispatchers.Main) { pendingReasonId = id; reasonError = false }
-            if (healthy) "דיווח אכילה בריאה נשמר" else "דיווח אכילה לא בריאה נשמר"
+            val id = repository.addEvent(type)
+            if (type != EventType.HEALTHY) withContext(Dispatchers.Main) { pendingReasonType = type; pendingReasonId = id; reasonError = false }
+            "דיווח ${type.label} נשמר"
         }
     }
     fun undo() = mutate {
@@ -64,8 +66,8 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     }
     fun reset() = mutate { repository.reset(); "ההיסטוריה נמחקה" }
 
-    suspend fun historyPage(days: Int?, healthy: Boolean?, before: EatingEvent?): HistoryPage =
-        withContext(Dispatchers.IO) { repository.historyPage(days, healthy, before) }
+    suspend fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage =
+        withContext(Dispatchers.IO) { repository.historyPage(days, type, before) }
 
     private fun mutate(action: suspend () -> String) {
         if (busy) return

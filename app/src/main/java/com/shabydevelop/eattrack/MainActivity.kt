@@ -41,9 +41,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Boolean) -> Unit, undo: () -> Unit, busy: Boolean) {
+internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, undo: () -> Unit, busy: Boolean) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-    val gap = (maxHeight * 0.025f).coerceIn(10.dp, 20.dp)
+    val gap = (maxHeight * 0.018f).coerceIn(8.dp, 16.dp)
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = gap),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -51,26 +51,30 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Boo
     ) {
         Text(report.todayLabel, style = MaterialTheme.typography.bodyMedium)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CompactSummary("אכילה בריאה היום", report.healthyToday, Modifier.weight(1f))
-            CompactSummary("אכילה לא בריאה היום", report.today, Modifier.weight(1f))
+            CompactSummary("בריאה היום", report.healthyToday, Modifier.weight(1f))
+            CompactSummary("לא בריאה היום", report.today, Modifier.weight(1f))
+            CompactSummary("ויתור היום", report.avoidedToday, Modifier.weight(1f))
         }
-        Button(onClick = { increment(true) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+        Button(onClick = { increment(EventType.HEALTHY) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF166534), contentColor = Color.White)) {
             Text("אכילה בריאה", style = MaterialTheme.typography.titleLarge)
         }
-        Button(onClick = { increment(false) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        Button(onClick = { increment(EventType.UNHEALTHY) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White)) {
             Text("אכילה לא בריאה", style = MaterialTheme.typography.titleLarge)
         }
-        OutlinedButton(onClick = undo, enabled = !busy && report.total + report.healthyTotal > 0,
+        Button(onClick = { increment(EventType.AVOIDED) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8), contentColor = Color.White)) { Text("ויתרתי על הפיתוי", style = MaterialTheme.typography.titleLarge) }
+        OutlinedButton(onClick = undo, enabled = !busy && report.total + report.healthyTotal + report.avoidedTotal > 0,
             modifier = Modifier.heightIn(min = 48.dp)) { Text("ביטול דיווח אחרון") }
         Spacer(Modifier.height(4.dp))
         HorizontalDivider()
-        listOf(Triple("השבוע", report.healthyWeek, report.week), Triple("החודש", report.healthyMonth, report.month), Triple("מצטבר", report.healthyTotal, report.total)).forEach { (label, healthy, unhealthy) ->
+        listOf("השבוע" to listOf(report.healthyWeek, report.week, report.avoidedWeek), "החודש" to listOf(report.healthyMonth, report.month, report.avoidedMonth), "מצטבר" to listOf(report.healthyTotal, report.total, report.avoidedTotal)).forEach { (label, counts) ->
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(label, Modifier.weight(1f))
-                Text("בריאה: $healthy", Modifier.weight(1f), color = Color(0xFF166534))
-                Text("לא בריאה: $unhealthy", Modifier.weight(1f), color = Color(0xFFB91C1C))
+                Text("בריאה: ${counts[0]}", Modifier.weight(1f), color = Color(0xFF166534))
+                Text("לא בריאה: ${counts[1]}", Modifier.weight(1f), color = Color(0xFFB91C1C))
+                Text("ויתור: ${counts[2]}", Modifier.weight(1f), color = Color(0xFF1D4ED8))
             }
         }
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
