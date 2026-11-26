@@ -33,6 +33,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
     LaunchedEffect(model.successSequence) {
         if (model.successSequence > handledSequence) {
             handledSequence = model.successSequence
+            android.widget.Toast.makeText(context.applicationContext, model.feedback, android.widget.Toast.LENGTH_SHORT).show()
             view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
         }
     }
@@ -95,8 +96,8 @@ internal fun EatingNavigation(model: CounterViewModel) {
                         modifier = Modifier.padding(vertical = 16.dp).semantics { heading() })
                 }
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
-                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::undo, model.busy, model.feedback) }
-                    composable("reports") { ReportsScreen(model.report, model.error, model::reset) }
+                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::undo, model.busy) }
+                    composable("reports") { ReportsScreen(model.report, model.error, model::reset, model.busy) }
                 }
             }
         }

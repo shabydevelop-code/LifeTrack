@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-internal fun CounterScreen(report: EatingReport, error: Boolean, increment: () -> Unit, undo: () -> Unit, busy: Boolean, feedback: String) {
+internal fun CounterScreen(report: EatingReport, error: Boolean, increment: () -> Unit, undo: () -> Unit, busy: Boolean) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -58,8 +58,6 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: () -
         }
         OutlinedButton(onClick = undo, enabled = !busy && report.total > 0,
             modifier = Modifier.heightIn(min = 48.dp)) { Text("ביטול דיווח אחרון") }
-        Text(if (busy) "מעדכן נתונים…" else feedback,
-            modifier = Modifier.heightIn(min = 24.dp).semantics { liveRegion = LiveRegionMode.Polite })
         HorizontalDivider()
         val summaries = listOf("השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total)
         BoxWithConstraints(Modifier.fillMaxWidth()) {

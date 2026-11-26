@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 
 data class DayCount(val label: String, val count: Long)
 data class EatingReport(val today: Long = 0, val week: Long = 0, val month: Long = 0,
@@ -17,7 +20,7 @@ data class EatingReport(val today: Long = 0, val week: Long = 0, val month: Long
     val todayLabel: String = "", val weekLabel: String = "", val monthLabel: String = "", val totalLabel: String = "")
 
 @Composable
-internal fun ReportsScreen(report: EatingReport, error: Boolean, reset: () -> Unit) {
+internal fun ReportsScreen(report: EatingReport, error: Boolean, reset: () -> Unit, busy: Boolean) {
     var confirmReset by remember { mutableStateOf(false) }
     if (confirmReset) AlertDialog(
         onDismissRequest = { confirmReset = false },
@@ -28,12 +31,12 @@ internal fun ReportsScreen(report: EatingReport, error: Boolean, reset: () -> Un
     )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (error) item { Text("לא ניתן לטעון נתונים", color = MaterialTheme.colorScheme.error) }
+        if (error) item { Text("לא ניתן לטעון נתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
         item { ReportSummary("היום", report.todayLabel, report.today) }
         item { ReportSummary("השבוע", report.weekLabel, report.week) }
         item { ReportSummary("החודש", report.monthLabel, report.month) }
         item { ReportSummary("סה״כ דיווחים", report.totalLabel, report.total) }
-        item { OutlinedButton(onClick = { confirmReset = true }, enabled = report.total > 0) { Text("מחיקת היסטוריית דיווחים") } }
+        item { OutlinedButton(onClick = { confirmReset = true }, enabled = !busy && report.total > 0) { Text("מחיקת היסטוריית דיווחים") } }
         item { Text("שבעת הימים האחרונים", style = MaterialTheme.typography.titleLarge) }
         items(report.days) { day ->
             val max = (report.days.maxOfOrNull { it.count } ?: 0).coerceAtLeast(1)
