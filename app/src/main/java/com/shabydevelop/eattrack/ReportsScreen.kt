@@ -25,12 +25,12 @@ internal fun ReportsScreen(report: EatingReport, error: Boolean) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(UiSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         if (error) item { Text("לא ניתן לטעון נתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
-        item { Text("סיכום לפי תקופה", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() }) }
+        item { Text("סיכום לפי תקופה", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() }) }
         item { PeriodTable(report.periodRows(true), true) }
-        item { Text("שבעת הימים האחרונים", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() }) }
+        item { Text("שבעת הימים האחרונים", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() }) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                reportLabels.forEachIndexed { i, label -> Text(label, color = reportColors[i], style = MaterialTheme.typography.labelLarge) }
+                reportLabels.forEachIndexed { i, label -> Text(label, color = reportColors[i], style = UiTypography.tableHeading) }
             }
         }
         items(report.days) { day ->
@@ -38,14 +38,14 @@ internal fun ReportsScreen(report: EatingReport, error: Boolean) {
             Row(Modifier.fillMaxWidth().clearAndSetSemantics {
                 contentDescription = day.label + ", " + reportLabels.zip(counts).joinToString(", ") { (label, count) -> "$label: $count" }
             }, verticalAlignment = Alignment.CenterVertically) {
-                Text(day.label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                Text(day.label, Modifier.weight(1f), style = UiTypography.tableCell)
                 Column(Modifier.weight(5f), verticalArrangement = Arrangement.spacedBy(UiSpacing.tiny)) {
                     counts.forEachIndexed { i, count ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.weight(1f).height(10.dp)) {
                                 Box(Modifier.fillMaxWidth(count.toFloat() / maximum.toFloat()).fillMaxHeight().background(reportColors[i]))
                             }
-                            Text(count.toString(), Modifier.padding(start = UiSpacing.normal), style = MaterialTheme.typography.bodySmall)
+                            Text(count.toString(), Modifier.padding(start = UiSpacing.normal), style = UiTypography.tableCell)
                         }
                     }
                 }

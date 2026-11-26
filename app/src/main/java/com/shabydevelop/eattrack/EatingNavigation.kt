@@ -63,9 +63,9 @@ internal fun EatingNavigation(model: CounterViewModel) {
         drawerState = drawer,
         drawerContent = {
             ModalDrawerSheet(windowInsets = WindowInsets(0, 0, 0, 0)) {
-                Text("מעקב אכילה אישי", Modifier.padding(20.dp).semantics { heading() }, style = MaterialTheme.typography.titleLarge)
+                Text("מעקב אכילה אישי", Modifier.padding(20.dp).semantics { heading() }, style = UiTypography.screenTitle)
                 listOf("home" to "מסך ראשי", "reports" to "דוחות", "history" to "היסטוריית דיווחים", "settings" to "הגדרות").forEach { (target, label) ->
-                    NavigationDrawerItem(label = { Text(label) }, selected = route == target,
+                    NavigationDrawerItem(label = { Text(label, style = UiTypography.body) }, selected = route == target,
                         onClick = {
                             nav.navigate(target) {
                                 popUpTo(nav.graph.findStartDestination().id)
@@ -76,7 +76,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
                 }
                 Spacer(Modifier.weight(1f))
                 HorizontalDivider()
-                Text("גרסה $version", Modifier.align(Alignment.CenterHorizontally).padding(UiSpacing.screen), style = MaterialTheme.typography.bodySmall)
+                Text("גרסה $version", Modifier.align(Alignment.CenterHorizontally).padding(UiSpacing.screen), style = UiTypography.supporting)
             }
         }
     ) {
@@ -96,7 +96,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
                         }
                     }
                     Text(when (route) { "reports" -> "דוחות אכילה"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; else -> "מעקב אכילה אישי" },
-                        color = Color.White, style = MaterialTheme.typography.titleLarge,
+                        color = Color.White, style = UiTypography.screenTitle,
                         modifier = Modifier.padding(vertical = UiSpacing.screen).semantics { heading() })
                 }
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {

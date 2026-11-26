@@ -34,7 +34,7 @@ internal fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell
 @Composable
 internal fun TableHeading(labels: List<String>, weights: List<Float>, colors: List<Color>? = null) {
     TableLine(weights, Modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(vertical = UiSpacing.normal).semantics { heading() }) { i ->
-        Text(labels[i], style = MaterialTheme.typography.labelLarge, color = colors?.getOrNull(i) ?: MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
+        Text(labels[i], style = UiTypography.tableHeading, color = colors?.getOrNull(i) ?: MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
     }
 }
 
@@ -49,9 +49,9 @@ internal fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
                 contentDescription = row.label + (if (showRanges) ", " + row.range else "") + ", " + reportLabels.zip(row.counts).joinToString(", ") { (label, count) -> "$label: $count" }
             }) { i ->
                 if (i == 0) Column {
-                    Text(row.label, style = MaterialTheme.typography.bodyMedium)
-                    if (showRanges) Text(row.range, style = MaterialTheme.typography.bodySmall)
-                } else Text(row.counts[i-1].toString(), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge)
+                    Text(row.label, style = UiTypography.tableCell)
+                    if (showRanges) Text(row.range, style = UiTypography.supporting)
+                } else Text(row.counts[i-1].toString(), textAlign = TextAlign.Center, style = UiTypography.tableCell)
             }
         }
     }

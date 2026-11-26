@@ -7,6 +7,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 
 internal object UiSpacing {
     val tiny = 2.dp
@@ -28,9 +32,30 @@ internal object UiColors {
     val avoided = Color(0xFF1D4ED8)
 }
 
+internal object UiTypography {
+    private fun style(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) =
+        TextStyle(fontFamily = FontFamily.SansSerif, fontSize = size.sp, lineHeight = line.sp, fontWeight = weight)
+
+    val screenTitle = style(24, 32, FontWeight.SemiBold)
+    val sectionTitle = style(20, 28, FontWeight.Medium)
+    val primaryAction = style(18, 24, FontWeight.Medium)
+    val body = style(16, 24)
+    val secondaryAction = style(16, 24, FontWeight.Medium)
+    val tableCell = style(14, 20)
+    val tableHeading = style(14, 20, FontWeight.Medium)
+    val supporting = style(12, 16)
+    val counter = style(24, 32, FontWeight.SemiBold)
+    val material = Typography(
+        headlineSmall = counter, titleLarge = screenTitle, titleMedium = sectionTitle,
+        titleSmall = tableHeading, bodyLarge = body, bodyMedium = body,
+        bodySmall = supporting, labelLarge = secondaryAction, labelMedium = tableHeading,
+        labelSmall = supporting
+    )
+}
+
 @Composable
 internal fun EatTrackTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = lightColorScheme(primary = UiColors.primary), content = content)
+    MaterialTheme(colorScheme = lightColorScheme(primary = UiColors.primary), typography = UiTypography.material, content = content)
 }
 
 @Composable
@@ -56,6 +81,6 @@ internal fun ReportAction(label: String, color: Color, enabled: Boolean, onClick
         modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.action),
         colors = ButtonDefaults.buttonColors(containerColor = color, contentColor = Color.White,
             disabledContainerColor = color, disabledContentColor = Color.White)) {
-        Text(label, style = MaterialTheme.typography.titleLarge)
+        Text(label, style = UiTypography.primaryAction)
     }
 }

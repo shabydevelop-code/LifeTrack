@@ -29,7 +29,7 @@ internal fun ReasonDialog(model: CounterViewModel) {
     val options = if (avoided) listOf(EatingReason.GOAL, EatingReason.ALTERNATIVE, EatingReason.DISTRACTION, EatingReason.DISTANCE, EatingReason.WAITED, EatingReason.NOT_HUNGRY, EatingReason.OTHER) else EatingReason.entries.takeWhile { it != EatingReason.GOAL }
     AlertDialog(
         onDismissRequest = model::dismissReasons,
-        title = { Text(if (avoided) "מה עזר לי לוותר?" else "מה הוביל לאכילה?") },
+        title = { Text(if (avoided) "מה עזר לי לוותר?" else "מה הוביל לאכילה?", style = UiTypography.sectionTitle) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
                 Text("הדיווח נשמר. אפשר לבחור סיבה מרכזית אחת או לדלג.")
@@ -39,7 +39,7 @@ internal fun ReasonDialog(model: CounterViewModel) {
                         selected = checked, enabled = !model.busy, role = Role.RadioButton,
                         onClick = { selected = reason.name }), verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected = checked, onClick = null, enabled = !model.busy)
-                        Text(reason.label, Modifier.padding(start = UiSpacing.medium))
+                        Text(reason.label, Modifier.padding(start = UiSpacing.medium), style = UiTypography.body)
                     }
                 }
                 if (model.reasonError) Text("לא ניתן לשמור את הסיבות. אפשר לנסות שוב או לדלג.",
@@ -47,7 +47,7 @@ internal fun ReasonDialog(model: CounterViewModel) {
             }
         },
         confirmButton = { TextButton(enabled = selected != null && !model.busy,
-            onClick = { model.saveReasons(options.filter { it.name == selected }.toSet()) }) { Text("שמירה") } },
-        dismissButton = { TextButton(enabled = !model.busy, onClick = model::dismissReasons) { Text("דילוג") } }
+            onClick = { model.saveReasons(options.filter { it.name == selected }.toSet()) }) { Text("שמירה", style = UiTypography.secondaryAction) } },
+        dismissButton = { TextButton(enabled = !model.busy, onClick = model::dismissReasons) { Text("דילוג", style = UiTypography.secondaryAction) } }
     )
 }

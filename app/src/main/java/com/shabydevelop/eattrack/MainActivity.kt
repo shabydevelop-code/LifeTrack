@@ -49,7 +49,7 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap)
     ) {
-        Text("סיכום היום · " + report.todayLabel, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        Text("סיכום היום · " + report.todayLabel, style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
             CompactSummary("בריאה", report.healthyToday, Modifier.weight(1f).fillMaxHeight())
             CompactSummary("לא בריאה", report.today, Modifier.weight(1f).fillMaxHeight())
@@ -59,10 +59,10 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         ReportAction("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) }
         ReportAction("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) }
         OutlinedButton(onClick = { if (!busy) undo() }, enabled = report.total + report.healthyTotal + report.avoidedTotal > 0,
-            modifier = Modifier.heightIn(min = UiSpacing.touch)) { Text("ביטול דיווח אחרון") }
+            modifier = Modifier.heightIn(min = UiSpacing.touch)) { Text("ביטול דיווח אחרון", style = UiTypography.secondaryAction) }
         Spacer(Modifier.height(UiSpacing.small))
         HorizontalDivider()
-        Text("סיכום מצטבר", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        Text("סיכום מצטבר", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
         PeriodTable(report.periodRows(false), false)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
     }
@@ -76,9 +76,9 @@ private fun CompactSummary(label: String, count: Long, modifier: Modifier = Modi
         Column(Modifier.fillMaxWidth().padding(horizontal = UiSpacing.compact, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
-            Text(label, style = MaterialTheme.typography.bodyMedium,
+            Text(label, style = UiTypography.tableHeading,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            Text(count.toString(), style = MaterialTheme.typography.headlineSmall,
+            Text(count.toString(), style = UiTypography.counter,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }

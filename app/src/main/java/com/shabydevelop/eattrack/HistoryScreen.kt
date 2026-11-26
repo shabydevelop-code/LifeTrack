@@ -59,7 +59,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
-                    Text(date, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(UiSpacing.normal).semantics { heading() })
+                    Text(date, style = UiTypography.sectionTitle, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(UiSpacing.normal).semantics { heading() })
                 }
                 val time = timeFormat.format(java.util.Date(event.timestamp))
                 val reasons = event.reasons.joinToString(" · ") { it.label }
@@ -67,9 +67,9 @@ internal fun HistoryScreen(model: CounterViewModel) {
                     contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "סיבות: $reasons"
                 }) { i ->
                     when (i) {
-                        0 -> Text(time, style = MaterialTheme.typography.bodyMedium)
-                        1 -> Text(event.type.label, style = MaterialTheme.typography.bodyMedium, color = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2] })
-                        else -> Text(reasons.ifEmpty { "—" }, style = MaterialTheme.typography.bodyMedium)
+                        0 -> Text(time, style = UiTypography.tableCell)
+                        1 -> Text(event.type.label, style = UiTypography.tableCell, color = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2] })
+                        else -> Text(reasons.ifEmpty { "—" }, style = UiTypography.tableCell)
                     }
                 }
                 HorizontalDivider()
@@ -87,11 +87,11 @@ private fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selec
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth(), propagateMinConstraints = true) {
         OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) {
-            Text(label + ": " + options.first { it.first == selected }.second, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            Text(label + ": " + options.first { it.first == selected }.second, style = UiTypography.secondaryAction, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { (value, title) ->
-                DropdownMenuItem(text = { Text(title) }, onClick = { expanded = false; if (value != selected) select(value) },
+                DropdownMenuItem(text = { Text(title, style = UiTypography.body) }, onClick = { expanded = false; if (value != selected) select(value) },
                     modifier = Modifier.semantics { this.selected = value == selected })
             }
         }
