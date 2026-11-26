@@ -14,10 +14,11 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 
-data class DayCount(val label: String, val count: Long)
+data class DayCount(val label: String, val count: Long, val healthy: Long = 0)
+data class EatingEvent(val timestamp: Long, val healthy: Boolean)
 data class EatingReport(val today: Long = 0, val week: Long = 0, val month: Long = 0,
-    val total: Long = 0, val days: List<DayCount> = emptyList(), val history: List<Long> = emptyList(),
-    val todayLabel: String = "", val weekLabel: String = "", val monthLabel: String = "", val totalLabel: String = "")
+    val total: Long = 0, val days: List<DayCount> = emptyList(), val history: List<EatingEvent> = emptyList(),
+    val todayLabel: String = "", val weekLabel: String = "", val monthLabel: String = "", val totalLabel: String = "", val healthyToday: Long = 0, val healthyWeek: Long = 0, val healthyMonth: Long = 0, val healthyTotal: Long = 0)
 
 @Composable
 internal fun ReportsScreen(report: EatingReport, error: Boolean, reset: () -> Unit, busy: Boolean) {
@@ -32,40 +33,45 @@ internal fun ReportsScreen(report: EatingReport, error: Boolean, reset: () -> Un
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (error) item { Text("לא ניתן לטעון נתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
-        item { ReportSummary("היום", report.todayLabel, report.today) }
-        item { ReportSummary("השבוע", report.weekLabel, report.week) }
-        item { ReportSummary("החודש", report.monthLabel, report.month) }
-        item { ReportSummary("סה״כ דיווחים", report.totalLabel, report.total) }
-        item { OutlinedButton(onClick = { confirmReset = true }, enabled = !busy && report.total > 0) { Text("מחיקת היסטוריית דיווחים") } }
+        item { ReportSummary("היום", report.todayLabel, report.today, report.healthyToday) }
+        item { ReportSummary("השבוע", report.weekLabel, report.week, report.healthyWeek) }
+        item { ReportSummary("החודש", report.monthLabel, report.month, report.healthyMonth) }
+        item { ReportSummary("סה״כ דיווחים", report.totalLabel, report.total, report.healthyTotal) }
+        item { OutlinedButton(onClick = { confirmReset = true }, enabled = !busy && report.total + report.healthyTotal > 0) { Text("מחיקת היסטוריית דיווחים") } }
         item { Text("שבעת הימים האחרונים", style = MaterialTheme.typography.titleLarge) }
         items(report.days) { day ->
-            val max = (report.days.maxOfOrNull { it.count } ?: 0).coerceAtLeast(1)
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(day.label, Modifier.width(58.dp))
-                Box(Modifier.weight(1f).height(18.dp)) {
-                    Box(Modifier.fillMaxWidth(day.count.toFloat() / max.toFloat()).fillMaxHeight().background(Color(0xFFB91C1C)))
+            val max = (report.days.maxOfOrNull { maxOf(it.count, it.healthy) } ?: 0).coerceAtLeast(1)
+            Column {
+                Text(day.label, style = MaterialTheme.typography.titleMedium)
+                listOf(Triple("בריאה", day.healthy, Color(0xFF166534)), Triple("לא בריאה", day.count, Color(0xFFB91C1C))).forEach { (label, count, color) ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(label, Modifier.weight(1f))
+                        Box(Modifier.weight(2f).height(14.dp)) {
+                            Box(Modifier.fillMaxWidth(count.toFloat() / max.toFloat()).fillMaxHeight().background(color))
+                        }
+                        Text(count.toString(), Modifier.padding(start = 8.dp))
+                    }
                 }
-                Text(day.count.toString(), Modifier.padding(start = 8.dp))
             }
         }
         item { Text("היסטוריית דיווחים", style = MaterialTheme.typography.titleLarge) }
         if (report.history.isEmpty()) item { Text("אין דיווחים עדיין") }
-        items(report.history) { timestamp ->
-            Text(java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp)))
+        items(report.history) { event ->
+            Text(java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(event.timestamp)) + if (event.healthy) " – אכילה בריאה" else " – אכילה לא בריאה")
             HorizontalDivider()
         }
     }
 }
 
 @Composable
-internal fun ReportSummary(label: String, range: String, count: Long) {
+internal fun ReportSummary(label: String, range: String, count: Long, healthy: Long) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(label, style = MaterialTheme.typography.titleMedium)
                 Text(range, style = MaterialTheme.typography.bodySmall)
             }
-            Text(count.toString(), style = MaterialTheme.typography.headlineSmall)
+            Column { Text("בריאה: $healthy", color = Color(0xFF166534)); Text("לא בריאה: $count", color = Color(0xFFB91C1C)) }
         }
     }
 }

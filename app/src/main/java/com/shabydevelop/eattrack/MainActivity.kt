@@ -41,39 +41,33 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-internal fun CounterScreen(report: EatingReport, error: Boolean, increment: () -> Unit, undo: () -> Unit, busy: Boolean) {
+internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Boolean) -> Unit, undo: () -> Unit, busy: Boolean) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(report.todayLabel, style = MaterialTheme.typography.bodyMedium)
-            Text(report.today.toString(), style = MaterialTheme.typography.displayLarge, color = Color(0xFFB91C1C))
-            Text("דיווחים היום")
+        Text(report.todayLabel, style = MaterialTheme.typography.bodyMedium)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CompactSummary("אכילה בריאה היום", report.healthyToday, Modifier.weight(1f))
+            CompactSummary("אכילה לא בריאה היום", report.today, Modifier.weight(1f))
         }
-        Button(onClick = increment, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+        Button(onClick = { increment(true) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF166534), contentColor = Color.White)) {
+            Text("אכילה בריאה", style = MaterialTheme.typography.titleLarge)
+        }
+        Button(onClick = { increment(false) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White)) {
             Text("אכילה לא בריאה", style = MaterialTheme.typography.titleLarge)
         }
-        OutlinedButton(onClick = undo, enabled = !busy && report.total > 0,
+        OutlinedButton(onClick = undo, enabled = !busy && report.total + report.healthyTotal > 0,
             modifier = Modifier.heightIn(min = 48.dp)) { Text("ביטול דיווח אחרון") }
         HorizontalDivider()
-        val summaries = listOf("השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total)
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
-            if (maxWidth < 280.dp || fontScale >= 1.5f) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    summaries.forEach { (label, count) ->
-                        CompactSummary(label, count, Modifier.fillMaxWidth())
-                    }
-                }
-            } else {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    summaries.forEach { (label, count) ->
-                        CompactSummary(label, count, Modifier.weight(1f))
-                    }
-                }
+        listOf(Triple("השבוע", report.healthyWeek, report.week), Triple("החודש", report.healthyMonth, report.month), Triple("מצטבר", report.healthyTotal, report.total)).forEach { (label, healthy, unhealthy) ->
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(label, Modifier.weight(1f))
+                Text("בריאה: $healthy", Modifier.weight(1f), color = Color(0xFF166534))
+                Text("לא בריאה: $unhealthy", Modifier.weight(1f), color = Color(0xFFB91C1C))
             }
         }
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
