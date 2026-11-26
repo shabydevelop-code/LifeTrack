@@ -2,6 +2,11 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.MD'
 
 permissions:
   contents: write
@@ -12,7 +17,7 @@ jobs:
     timeout-minutes: 20
     concurrency:
       group: eattrack-release
-      cancel-in-progress: false
+      cancel-in-progress: true
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
