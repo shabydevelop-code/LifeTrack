@@ -35,11 +35,11 @@ internal fun ReasonDialog(model: CounterViewModel) {
                 Text("הדיווח נשמר. אפשר לבחור סיבה מרכזית אחת או לדלג.")
                 options.forEach { reason ->
                     val checked = reason.name == selected
-                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(
+                    Row(Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch).selectable(
                         selected = checked, enabled = !model.busy, role = Role.RadioButton,
                         onClick = { selected = reason.name }), verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected = checked, onClick = null, enabled = !model.busy)
-                        Text(reason.label, Modifier.padding(start = 12.dp))
+                        Text(reason.label, Modifier.padding(start = UiSpacing.medium))
                     }
                 }
                 if (model.reasonError) Text("לא ניתן לשמור את הסיבות. אפשר לנסות שוב או לדלג.",

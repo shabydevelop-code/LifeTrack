@@ -22,8 +22,8 @@ data class EatingReport(val today: Long = 0, val week: Long = 0, val month: Long
 @Composable
 internal fun ReportsScreen(report: EatingReport, error: Boolean) {
     val maximum = (report.days.maxOfOrNull { maxOf(it.count, it.healthy, it.avoided) } ?: 0).coerceAtLeast(1)
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(UiSpacing.medium),
+        verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         if (error) item { Text("לא ניתן לטעון נתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
         item { Text("סיכום לפי תקופה", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() }) }
         item { PeriodTable(report.periodRows(true), true) }
@@ -39,13 +39,13 @@ internal fun ReportsScreen(report: EatingReport, error: Boolean) {
                 contentDescription = day.label + ", " + reportLabels.zip(counts).joinToString(", ") { (label, count) -> "$label: $count" }
             }, verticalAlignment = Alignment.CenterVertically) {
                 Text(day.label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                Column(Modifier.weight(5f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(Modifier.weight(5f), verticalArrangement = Arrangement.spacedBy(UiSpacing.tiny)) {
                     counts.forEachIndexed { i, count ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.weight(1f).height(10.dp)) {
                                 Box(Modifier.fillMaxWidth(count.toFloat() / maximum.toFloat()).fillMaxHeight().background(reportColors[i]))
                             }
-                            Text(count.toString(), Modifier.padding(start = 8.dp), style = MaterialTheme.typography.bodySmall)
+                            Text(count.toString(), Modifier.padding(start = UiSpacing.normal), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }

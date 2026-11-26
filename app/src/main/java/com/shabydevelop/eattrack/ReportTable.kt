@@ -12,7 +12,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 internal val reportLabels = listOf("בריאה", "לא בריאה", "ויתור")
-internal val reportColors = listOf(Color(0xFF166534), Color(0xFFB91C1C), Color(0xFF1D4ED8))
+internal val reportColors = listOf(UiColors.healthy, UiColors.unhealthy, UiColors.avoided)
 internal data class PeriodRow(val label: String, val range: String, val counts: List<Long>)
 
 internal fun EatingReport.periodRows(includeToday: Boolean): List<PeriodRow> = listOf(
@@ -26,14 +26,14 @@ internal fun EatingReport.periodRows(includeToday: Boolean): List<PeriodRow> = l
 internal fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell: @Composable (Int) -> Unit) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         weights.forEachIndexed { index, weight ->
-            Box(Modifier.weight(weight).padding(horizontal = 3.dp), contentAlignment = if (index == 0) Alignment.CenterStart else Alignment.Center) { cell(index) }
+            Box(Modifier.weight(weight).padding(horizontal = UiSpacing.cell), contentAlignment = if (index == 0) Alignment.CenterStart else Alignment.Center) { cell(index) }
         }
     }
 }
 
 @Composable
 internal fun TableHeading(labels: List<String>, weights: List<Float>, colors: List<Color>? = null) {
-    TableLine(weights, Modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(vertical = 8.dp).semantics { heading() }) { i ->
+    TableLine(weights, Modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(vertical = UiSpacing.normal).semantics { heading() }) { i ->
         Text(labels[i], style = MaterialTheme.typography.labelLarge, color = colors?.getOrNull(i) ?: MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
     }
 }
@@ -45,7 +45,7 @@ internal fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
         TableHeading(listOf("תקופה") + reportLabels, weights, listOf(MaterialTheme.colorScheme.onSurfaceVariant) + reportColors)
         rows.forEach { row ->
             HorizontalDivider()
-            TableLine(weights, Modifier.padding(vertical = 8.dp).clearAndSetSemantics {
+            TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
                 contentDescription = row.label + (if (showRanges) ", " + row.range else "") + ", " + reportLabels.zip(row.counts).joinToString(", ") { (label, count) -> "$label: $count" }
             }) { i ->
                 if (i == 0) Column {

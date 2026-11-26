@@ -56,7 +56,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
     }
     model.pendingReasonId?.let { id -> key(id) { ReasonDialog(model) } }
     ModalNavigationDrawer(
-        modifier = Modifier.fillMaxSize().background(Color(0xFF1E4064))
+        modifier = Modifier.fillMaxSize().background(UiColors.primary)
             .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.statusBars).union(WindowInsets.displayCutout).only(WindowInsetsSides.Top))
             .background(Color.White)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
@@ -72,31 +72,31 @@ internal fun EatingNavigation(model: CounterViewModel) {
                                 launchSingleTop = true
                             }
                             scope.launch { drawer.close() }
-                        }, modifier = Modifier.padding(horizontal = 12.dp))
+                        }, modifier = Modifier.padding(horizontal = UiSpacing.medium))
                 }
                 Spacer(Modifier.weight(1f))
                 HorizontalDivider()
-                Text("גרסה $version", Modifier.align(Alignment.CenterHorizontally).padding(16.dp), style = MaterialTheme.typography.bodySmall)
+                Text("גרסה $version", Modifier.align(Alignment.CenterHorizontally).padding(UiSpacing.screen), style = MaterialTheme.typography.bodySmall)
             }
         }
     ) {
         Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
-                Row(Modifier.fillMaxWidth().background(Color(0xFF1E4064)).padding(horizontal = 8.dp),
+                Row(Modifier.fillMaxWidth().background(UiColors.primary).padding(horizontal = UiSpacing.normal),
                     verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { scope.launch { drawer.open() } }) {
-                        androidx.compose.foundation.Canvas(Modifier.size(24.dp).semantics {
+                        androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.large).semantics {
                             this.contentDescription = "פתיחת תפריט"
                         }) {
                             for (i in 1..3) drawLine(Color.White,
-                                androidx.compose.ui.geometry.Offset(2.dp.toPx(), size.height * i / 4),
-                                androidx.compose.ui.geometry.Offset(size.width - 2.dp.toPx(), size.height * i / 4),
-                                strokeWidth = 2.dp.toPx())
+                                androidx.compose.ui.geometry.Offset(UiSpacing.tiny.toPx(), size.height * i / 4),
+                                androidx.compose.ui.geometry.Offset(size.width - UiSpacing.tiny.toPx(), size.height * i / 4),
+                                strokeWidth = UiSpacing.tiny.toPx())
                         }
                     }
                     Text(when (route) { "reports" -> "דוחות אכילה"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; else -> "מעקב אכילה אישי" },
                         color = Color.White, style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(vertical = 16.dp).semantics { heading() })
+                        modifier = Modifier.padding(vertical = UiSpacing.screen).semantics { heading() })
                 }
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
                     composable("home") { CounterScreen(model.report, model.error, model::increment, model::undo, model.busy) }

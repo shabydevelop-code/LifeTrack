@@ -41,7 +41,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
     }
     val dateFormat = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
     val timeFormat = remember { java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()) }
-    Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxSize().padding(UiSpacing.screen), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         val filters: @Composable () -> Unit = {
             HistoryFilter("תקופה", listOf(7 to "7 ימים", 30 to "30 ימים", 0 to "הכל"), period) {
                 period = it; pageCount = 1; rows = emptyList(); more = false; loading = true
@@ -52,25 +52,18 @@ internal fun HistoryScreen(model: CounterViewModel) {
                 type = it; pageCount = 1; rows = emptyList(); more = false; loading = true
             }
         }
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            if (maxWidth < 320.dp || LocalDensity.current.fontScale >= 1.5f) {
-                Column { filters(); types() }
-            } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box(Modifier.weight(1f)) { filters() }
-                Box(Modifier.weight(1f)) { types() }
-            }
-        }
+        AdaptiveActionPair(filters, types)
         val weights = listOf(0.8f, 1.5f, 2f)
         TableHeading(listOf("שעה", "סוג דיווח", "סיבות"), weights)
-        LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
-                    Text(date, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(8.dp).semantics { heading() })
+                    Text(date, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(UiSpacing.normal).semantics { heading() })
                 }
                 val time = timeFormat.format(java.util.Date(event.timestamp))
                 val reasons = event.reasons.joinToString(" · ") { it.label }
-                TableLine(weights, Modifier.padding(vertical = 8.dp).clearAndSetSemantics {
+                TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
                     contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "סיבות: $reasons"
                 }) { i ->
                     when (i) {
@@ -84,7 +77,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             if (loading) item { Text("טוען דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
             if (error) item { Text("לא ניתן לטעון דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }); OutlinedButton(onClick = { retry++ }) { Text("נסה שוב") } }
             if (!loading && !error && rows.isEmpty()) item { Text("אין דיווחים בתקופה שנבחרה") }
-            if (more && !loading && !error) item { OutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("טעינת דיווחים נוספים") } }
+            if (more && !loading && !error) item { OutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) { Text("טעינת דיווחים נוספים") } }
         }
     }
 }
@@ -92,9 +85,9 @@ internal fun HistoryScreen(model: CounterViewModel) {
 @Composable
 private fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selected: Int, select: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-            Text(label + ": " + options.first { it.first == selected }.second)
+    Box(Modifier.fillMaxWidth(), propagateMinConstraints = true) {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) {
+            Text(label + ": " + options.first { it.first == selected }.second, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { (value, title) ->

@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF1E4064))) {
+                EatTrackTheme {
                     val model: CounterViewModel = viewModel()
                     EatingNavigation(model)
                 }
@@ -43,31 +43,24 @@ class MainActivity : ComponentActivity() {
 @Composable
 internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, undo: () -> Unit, busy: Boolean) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-    val gap = (maxHeight * 0.014f).coerceIn(6.dp, 12.dp)
+    val gap = (maxHeight * 0.014f).coerceIn(UiSpacing.compact, UiSpacing.medium)
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = gap),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = UiSpacing.screen, vertical = gap),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap)
     ) {
         Text("סיכום היום · " + report.todayLabel, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
             CompactSummary("בריאה", report.healthyToday, Modifier.weight(1f).fillMaxHeight())
             CompactSummary("לא בריאה", report.today, Modifier.weight(1f).fillMaxHeight())
             CompactSummary("ויתור", report.avoidedToday, Modifier.weight(1f).fillMaxHeight())
         }
-        Button(onClick = { increment(EventType.HEALTHY) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF166534), contentColor = Color.White, disabledContainerColor = Color(0xFF166534), disabledContentColor = Color.White)) {
-            Text("אכילה בריאה", style = MaterialTheme.typography.titleLarge)
-        }
-        Button(onClick = { increment(EventType.UNHEALTHY) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White, disabledContainerColor = Color(0xFFB91C1C), disabledContentColor = Color.White)) {
-            Text("אכילה לא בריאה", style = MaterialTheme.typography.titleLarge)
-        }
-        Button(onClick = { increment(EventType.AVOIDED) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8), contentColor = Color.White, disabledContainerColor = Color(0xFF1D4ED8), disabledContentColor = Color.White)) { Text("ויתרתי על הפיתוי", style = MaterialTheme.typography.titleLarge) }
+        ReportAction("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) }
+        ReportAction("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) }
+        ReportAction("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) }
         OutlinedButton(onClick = { if (!busy) undo() }, enabled = report.total + report.healthyTotal + report.avoidedTotal > 0,
-            modifier = Modifier.heightIn(min = 48.dp)) { Text("ביטול דיווח אחרון") }
-        Spacer(Modifier.height(4.dp))
+            modifier = Modifier.heightIn(min = UiSpacing.touch)) { Text("ביטול דיווח אחרון") }
+        Spacer(Modifier.height(UiSpacing.small))
         HorizontalDivider()
         Text("סיכום מצטבר", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
         PeriodTable(report.periodRows(false), false)
@@ -80,9 +73,9 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
 private fun CompactSummary(label: String, count: Long, modifier: Modifier = Modifier) {
     Card(modifier = modifier.semantics(mergeDescendants = true) {},
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 10.dp),
+        Column(Modifier.fillMaxWidth().padding(horizontal = UiSpacing.compact, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
             Text(label, style = MaterialTheme.typography.bodyMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Text(count.toString(), style = MaterialTheme.typography.headlineSmall,
