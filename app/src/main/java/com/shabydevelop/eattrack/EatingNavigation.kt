@@ -52,8 +52,10 @@ internal fun EatingNavigation(model: CounterViewModel) {
         onDispose { owner.lifecycle.removeObserver(observer) }
     }
     ModalNavigationDrawer(
-        modifier = Modifier.fillMaxSize().background(Color.White)
-            .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.statusBars).union(WindowInsets.displayCutout)),
+        modifier = Modifier.fillMaxSize().background(Color(0xFF1E4064))
+            .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.statusBars).union(WindowInsets.displayCutout).only(WindowInsetsSides.Top))
+            .background(Color.White)
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
         drawerState = drawer,
         drawerContent = {
             ModalDrawerSheet(windowInsets = WindowInsets(0, 0, 0, 0)) {
