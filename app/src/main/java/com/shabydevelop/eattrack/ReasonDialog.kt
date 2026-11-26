@@ -3,7 +3,8 @@ package com.shabydevelop.eattrack
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -23,23 +24,21 @@ enum class EatingReason(val label: String) {
 
 @Composable
 internal fun ReasonDialog(model: CounterViewModel) {
-    var selected by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
+    var selected by rememberSaveable { mutableStateOf<String?>(null) }
     val avoided = model.pendingReasonType == EventType.AVOIDED
     val options = if (avoided) listOf(EatingReason.GOAL, EatingReason.ALTERNATIVE, EatingReason.DISTRACTION, EatingReason.DISTANCE, EatingReason.WAITED, EatingReason.NOT_HUNGRY, EatingReason.OTHER) else EatingReason.entries.takeWhile { it != EatingReason.GOAL }
     AlertDialog(
         onDismissRequest = model::dismissReasons,
         title = { Text(if (avoided) "מה עזר לי לוותר?" else "מה הוביל לאכילה?") },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                Text("הדיווח נשמר. אפשר לבחור כמה סיבות או לדלג.")
+            Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
+                Text("הדיווח נשמר. אפשר לבחור סיבה מרכזית אחת או לדלג.")
                 options.forEach { reason ->
-                    val checked = reason.name in selected
-                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).toggleable(
-                        value = checked, enabled = !model.busy, role = Role.Checkbox,
-                        onValueChange = { value ->
-                            selected = ArrayList(if (value) selected + reason.name else selected.filterNot { it == reason.name })
-                        }), verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = checked, onCheckedChange = null, enabled = !model.busy)
+                    val checked = reason.name == selected
+                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(
+                        selected = checked, enabled = !model.busy, role = Role.RadioButton,
+                        onClick = { selected = reason.name }), verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = checked, onClick = null, enabled = !model.busy)
                         Text(reason.label, Modifier.padding(start = 12.dp))
                     }
                 }
@@ -47,8 +46,8 @@ internal fun ReasonDialog(model: CounterViewModel) {
                     color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             }
         },
-        confirmButton = { TextButton(enabled = selected.isNotEmpty() && !model.busy,
-            onClick = { model.saveReasons(options.filter { it.name in selected }.toSet()) }) { Text("שמירה") } },
+        confirmButton = { TextButton(enabled = selected != null && !model.busy,
+            onClick = { model.saveReasons(options.filter { it.name == selected }.toSet()) }) { Text("שמירה") } },
         dismissButton = { TextButton(enabled = !model.busy, onClick = model::dismissReasons) { Text("דילוג") } }
     )
 }
