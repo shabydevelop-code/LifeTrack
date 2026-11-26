@@ -4,12 +4,15 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    concurrency:
+      group: android-demo-release
+      cancel-in-progress: false
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -31,3 +34,11 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 1
+
+      - name: Publish APK release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk Android-Demo.apk
+          TAG="build-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          gh release create "$TAG" Android-Demo.apk --target "$GITHUB_SHA" --title "Android Demo $TAG" --notes "Debug APK for testing" --latest
