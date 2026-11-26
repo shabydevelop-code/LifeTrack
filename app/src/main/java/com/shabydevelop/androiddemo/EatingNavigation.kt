@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 internal fun EatingNavigation(model: CounterViewModel) {
@@ -24,7 +26,23 @@ internal fun EatingNavigation(model: CounterViewModel) {
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     BackHandler(drawer.isOpen) { scope.launch { drawer.close() } }
-    LaunchedEffect(route) { if (route == "reports") model.reload() }
+    val context = LocalContext.current
+    val version = remember(context) { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "" }
+    LaunchedEffect(route) {
+        while (true) {
+            model.reload()
+            val now = System.currentTimeMillis()
+            delay(60000L - now % 60000L)
+        }
+    }
+    DisposableEffect(context) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) model.reload()
+        }
+        val owner = context as androidx.activity.ComponentActivity
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
+    }
     ModalNavigationDrawer(
         drawerState = drawer,
         drawerContent = {
@@ -40,6 +58,9 @@ internal fun EatingNavigation(model: CounterViewModel) {
                             scope.launch { drawer.close() }
                         }, modifier = Modifier.padding(horizontal = 12.dp))
                 }
+                Spacer(Modifier.weight(1f))
+                HorizontalDivider()
+                Text("גרסה $version", Modifier.align(Alignment.CenterHorizontally).padding(16.dp), style = MaterialTheme.typography.bodySmall)
             }
         }
     ) {
@@ -62,8 +83,8 @@ internal fun EatingNavigation(model: CounterViewModel) {
                         modifier = Modifier.padding(vertical = 16.dp).semantics { heading() })
                 }
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
-                    composable("home") { CounterScreen(model.count, model.error, model::increment, model::reset) }
-                    composable("reports") { ReportsScreen(model.report, model.error) }
+                    composable("home") { CounterScreen(model.report, model.error, model::increment) }
+                    composable("reports") { ReportsScreen(model.report, model.error, model::reset) }
                 }
             }
         }

@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -34,29 +36,23 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-internal fun CounterScreen(count: Long, error: Boolean, increment: () -> Unit, reset: () -> Unit) {
-    var confirmReset by remember { mutableStateOf(false) }
-    if (confirmReset) {
-        AlertDialog(
-            onDismissRequest = { confirmReset = false },
-            title = { Text("איפוס דיווחים") },
-            text = { Text("כל הדיווחים יימחקו לצמיתות. להמשיך?") },
-            confirmButton = { TextButton(onClick = { confirmReset = false; reset() }) { Text("איפוס") } },
-            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("ביטול") } }
-        )
+internal fun CounterScreen(report: EatingReport, error: Boolean, increment: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(report.todayLabel, style = MaterialTheme.typography.titleMedium)
+        Text(report.today.toString(), style = MaterialTheme.typography.displayLarge, color = Color(0xFFB91C1C))
+        Text("דיווחים היום")
+        Button(onClick = increment, modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White)) {
+            Text("אכילה לא בריאה", style = MaterialTheme.typography.titleLarge)
+        }
+        HorizontalDivider()
+        ReportSummary("השבוע", report.weekLabel, report.week)
+        ReportSummary("החודש", report.monthLabel, report.month)
+        ReportSummary("סה״כ מתחילת המעקב", report.totalLabel, report.total)
+        if (error) Text("לא ניתן לעדכן את הנתונים. נסה שוב.", color = MaterialTheme.colorScheme.error)
     }
-            Column(
-                modifier = Modifier.fillMaxSize().padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
-            ) {
-                Button(
-                    onClick = increment,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White)
-                ) { Text("אכילה לא בריאה", style = MaterialTheme.typography.titleLarge) }
-                Text("מספר דיווחים: $count", style = MaterialTheme.typography.titleMedium)
-                OutlinedButton(onClick = { confirmReset = true }, enabled = count > 0) { Text("איפוס") }
-                if (error) Text("לא ניתן לעדכן את הנתונים. נסה שוב.", color = MaterialTheme.colorScheme.error)
-            }
 }

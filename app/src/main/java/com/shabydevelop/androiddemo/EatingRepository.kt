@@ -43,7 +43,13 @@ class EatingRepository(context: Context) {
         db.readableDatabase.rawQuery("SELECT created_at FROM unhealthy_eating_events ORDER BY created_at DESC, id DESC", null).use {
             while (it.moveToNext()) history.add(it.getLong(0))
         }
-        return EatingReport(since(today), since(week), since(month), count(), days, history)
+        val format = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+        val weekEnd = (week.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 6) }
+        val monthEnd = (month.clone() as java.util.Calendar).apply { set(java.util.Calendar.DAY_OF_MONTH, getActualMaximum(java.util.Calendar.DAY_OF_MONTH)) }
+        val totalLabel = history.lastOrNull()?.let { format.format(java.util.Date(it)) + " – " + format.format(today.time) } ?: "אין דיווחים"
+        return EatingReport(since(today), since(week), since(month), count(), days, history,
+            format.format(today.time), format.format(week.time) + " – " + format.format(weekEnd.time),
+            format.format(month.time) + " – " + format.format(monthEnd.time), totalLabel)
     }
 
     fun count(): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events")
