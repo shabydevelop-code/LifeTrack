@@ -43,17 +43,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, undo: () -> Unit, busy: Boolean) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-    val gap = (maxHeight * 0.018f).coerceIn(8.dp, 16.dp)
+    val gap = (maxHeight * 0.014f).coerceIn(6.dp, 12.dp)
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = gap),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap)
     ) {
-        Text(report.todayLabel, style = MaterialTheme.typography.bodyMedium)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CompactSummary("בריאה היום", report.healthyToday, Modifier.weight(1f))
-            CompactSummary("לא בריאה היום", report.today, Modifier.weight(1f))
-            CompactSummary("ויתור היום", report.avoidedToday, Modifier.weight(1f))
+        Text("סיכום היום · " + report.todayLabel, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CompactSummary("בריאה", report.healthyToday, Modifier.weight(1f).fillMaxHeight())
+            CompactSummary("לא בריאה", report.today, Modifier.weight(1f).fillMaxHeight())
+            CompactSummary("ויתור", report.avoidedToday, Modifier.weight(1f).fillMaxHeight())
         }
         Button(onClick = { increment(EventType.HEALTHY) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF166534), contentColor = Color.White)) {
@@ -69,14 +69,8 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
             modifier = Modifier.heightIn(min = 48.dp)) { Text("ביטול דיווח אחרון") }
         Spacer(Modifier.height(4.dp))
         HorizontalDivider()
-        listOf("השבוע" to listOf(report.healthyWeek, report.week, report.avoidedWeek), "החודש" to listOf(report.healthyMonth, report.month, report.avoidedMonth), "מצטבר" to listOf(report.healthyTotal, report.total, report.avoidedTotal)).forEach { (label, counts) ->
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(label, Modifier.weight(1f))
-                Text("בריאה: ${counts[0]}", Modifier.weight(1f), color = Color(0xFF166534))
-                Text("לא בריאה: ${counts[1]}", Modifier.weight(1f), color = Color(0xFFB91C1C))
-                Text("ויתור: ${counts[2]}", Modifier.weight(1f), color = Color(0xFF1D4ED8))
-            }
-        }
+        Text("סיכום מצטבר", style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        PeriodTable(report.periodRows(false), false)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
     }
     }
@@ -86,7 +80,7 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
 private fun CompactSummary(label: String, count: Long, modifier: Modifier = Modifier) {
     Card(modifier = modifier.semantics(mergeDescendants = true) {},
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 16.dp),
+        Column(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(label, style = MaterialTheme.typography.bodyMedium,

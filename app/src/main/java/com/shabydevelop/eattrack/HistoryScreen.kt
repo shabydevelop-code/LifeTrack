@@ -1,6 +1,8 @@
 package com.shabydevelop.eattrack
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
@@ -40,24 +42,43 @@ internal fun HistoryScreen(model: CounterViewModel) {
     val dateFormat = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
     val timeFormat = remember { java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()) }
     Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        HistoryFilter("תקופה", listOf(7 to "7 ימים", 30 to "30 ימים", 0 to "הכל"), period) {
-            period = it; pageCount = 1; rows = emptyList(); more = false; loading = true
+        val filters: @Composable () -> Unit = {
+            HistoryFilter("תקופה", listOf(7 to "7 ימים", 30 to "30 ימים", 0 to "הכל"), period) {
+                period = it; pageCount = 1; rows = emptyList(); more = false; loading = true
+            }
         }
-        HistoryFilter("סוג דיווח", listOf(0 to "הכל", 1 to "אכילה בריאה", 2 to "אכילה לא בריאה", 3 to "ויתור על פיתוי"), type) {
-            type = it; pageCount = 1; rows = emptyList(); more = false; loading = true
+        val types: @Composable () -> Unit = {
+            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "בריאה", 2 to "לא בריאה", 3 to "ויתור"), type) {
+                type = it; pageCount = 1; rows = emptyList(); more = false; loading = true
+            }
         }
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            if (maxWidth < 320.dp || LocalDensity.current.fontScale >= 1.5f) {
+                Column { filters(); types() }
+            } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.weight(1f)) { filters() }
+                Box(Modifier.weight(1f)) { types() }
+            }
+        }
+        val weights = listOf(0.8f, 1.5f, 2f)
+        TableHeading(listOf("שעה", "סוג דיווח", "סיבות"), weights)
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
-                    Text(date, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+                    Text(date, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(8.dp).semantics { heading() })
                 }
-                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp).semantics(mergeDescendants = true) {}) {
-                    Text(timeFormat.format(java.util.Date(event.timestamp)), Modifier.weight(1f))
-                    Text(event.type.label, Modifier.weight(2f),
-                        color = when (event.type) { EventType.HEALTHY -> Color(0xFF166534); EventType.UNHEALTHY -> Color(0xFFB91C1C); EventType.AVOIDED -> Color(0xFF1D4ED8) })
+                val time = timeFormat.format(java.util.Date(event.timestamp))
+                val reasons = event.reasons.joinToString(" · ") { it.label }
+                TableLine(weights, Modifier.padding(vertical = 8.dp).clearAndSetSemantics {
+                    contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "סיבות: $reasons"
+                }) { i ->
+                    when (i) {
+                        0 -> Text(time, style = MaterialTheme.typography.bodyMedium)
+                        1 -> Text(event.type.label, style = MaterialTheme.typography.bodyMedium, color = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2] })
+                        else -> Text(reasons.ifEmpty { "—" }, style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
-                if (event.reasons.isNotEmpty()) Text("סיבות: " + event.reasons.joinToString(" · ") { it.label }, style = MaterialTheme.typography.bodyMedium)
                 HorizontalDivider()
             }
             if (loading) item { Text("טוען דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
