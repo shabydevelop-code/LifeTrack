@@ -1,4 +1,4 @@
-package com.shabydevelop.androiddemo
+package com.shabydevelop.eattrack
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -47,7 +47,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
         drawerState = drawer,
         drawerContent = {
             ModalDrawerSheet {
-                Text("תפריט ראשי", Modifier.padding(20.dp), style = MaterialTheme.typography.titleLarge)
+                Text("EatTrack", Modifier.padding(20.dp), style = MaterialTheme.typography.titleLarge)
                 listOf("home" to "מסך ראשי", "reports" to "דוחות").forEach { (target, label) ->
                     NavigationDrawerItem(label = { Text(label) }, selected = route == target,
                         onClick = {

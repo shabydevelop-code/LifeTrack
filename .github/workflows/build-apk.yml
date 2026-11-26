@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     concurrency:
-      group: android-demo-release
+      group: eattrack-release
       cancel-in-progress: false
     steps:
       - name: Checkout source
@@ -53,7 +53,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-demo-debug-apk
+          name: eattrack-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 1
@@ -62,6 +62,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk Android-Demo.apk
+          cp app/build/outputs/apk/debug/app-debug.apk EatTrack.apk
           TAG="build-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
-          gh release create "$TAG" Android-Demo.apk --target "$GITHUB_SHA" --title "Android Demo $TAG" --notes "APK signed with permanent testing key" --latest
+          gh release create "$TAG" EatTrack.apk --target "$GITHUB_SHA" --title "EatTrack $TAG" --notes "APK signed with permanent testing key" --latest

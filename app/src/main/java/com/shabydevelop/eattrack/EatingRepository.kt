@@ -1,4 +1,4 @@
-package com.shabydevelop.androiddemo
+package com.shabydevelop.eattrack
 
 import android.content.ContentValues
 import android.content.Context
@@ -55,7 +55,7 @@ class EatingRepository(context: Context) {
     fun count(): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events")
 }
 
-private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eating.db", null, 1) {
+private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 1) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE unhealthy_eating_events (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL)")
     }

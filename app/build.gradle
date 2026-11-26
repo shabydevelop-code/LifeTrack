@@ -4,10 +4,10 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
 }
 android {
-    namespace 'com.shabydevelop.androiddemo'
+    namespace 'com.shabydevelop.eattrack'
     compileSdk 35
     defaultConfig {
-        applicationId 'com.shabydevelop.androiddemo'
+        applicationId 'com.shabydevelop.eattrack'
         minSdk 23
         targetSdk 35
         versionCode = Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')

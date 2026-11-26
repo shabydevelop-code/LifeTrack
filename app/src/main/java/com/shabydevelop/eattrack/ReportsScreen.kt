@@ -1,4 +1,4 @@
-package com.shabydevelop.androiddemo
+package com.shabydevelop.eattrack
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

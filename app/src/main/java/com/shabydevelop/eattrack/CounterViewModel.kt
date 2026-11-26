@@ -1,4 +1,4 @@
-package com.shabydevelop.androiddemo
+package com.shabydevelop.eattrack
 
 import android.app.Application
 import androidx.compose.runtime.*
