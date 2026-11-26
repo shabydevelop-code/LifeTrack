@@ -28,12 +28,14 @@ internal fun EatingNavigation(model: CounterViewModel) {
     BackHandler(drawer.isOpen) { scope.launch { drawer.close() } }
     val context = LocalContext.current
     val version = remember(context) { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "" }
+    val toastManager = remember(context.applicationContext) { ToastManager(context.applicationContext) }
+    DisposableEffect(toastManager) { onDispose { toastManager.cancel() } }
     val view = androidx.compose.ui.platform.LocalView.current
     var handledSequence by androidx.compose.runtime.saveable.rememberSaveable { mutableLongStateOf(model.successSequence) }
     LaunchedEffect(model.successSequence) {
         if (model.successSequence > handledSequence) {
             handledSequence = model.successSequence
-            android.widget.Toast.makeText(context.applicationContext, model.feedback, android.widget.Toast.LENGTH_SHORT).show()
+            toastManager.show(model.feedback)
             view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
         }
     }

@@ -56,16 +56,16 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
             CompactSummary("ויתור", report.avoidedToday, Modifier.weight(1f).fillMaxHeight())
         }
         Button(onClick = { increment(EventType.HEALTHY) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF166534), contentColor = Color.White)) {
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF166534), contentColor = Color.White, disabledContainerColor = Color(0xFF166534), disabledContentColor = Color.White)) {
             Text("אכילה בריאה", style = MaterialTheme.typography.titleLarge)
         }
         Button(onClick = { increment(EventType.UNHEALTHY) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White)) {
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB91C1C), contentColor = Color.White, disabledContainerColor = Color(0xFFB91C1C), disabledContentColor = Color.White)) {
             Text("אכילה לא בריאה", style = MaterialTheme.typography.titleLarge)
         }
         Button(onClick = { increment(EventType.AVOIDED) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8), contentColor = Color.White)) { Text("ויתרתי על הפיתוי", style = MaterialTheme.typography.titleLarge) }
-        OutlinedButton(onClick = undo, enabled = !busy && report.total + report.healthyTotal + report.avoidedTotal > 0,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8), contentColor = Color.White, disabledContainerColor = Color(0xFF1D4ED8), disabledContentColor = Color.White)) { Text("ויתרתי על הפיתוי", style = MaterialTheme.typography.titleLarge) }
+        OutlinedButton(onClick = { if (!busy) undo() }, enabled = report.total + report.healthyTotal + report.avoidedTotal > 0,
             modifier = Modifier.heightIn(min = 48.dp)) { Text("ביטול דיווח אחרון") }
         Spacer(Modifier.height(4.dp))
         HorizontalDivider()
