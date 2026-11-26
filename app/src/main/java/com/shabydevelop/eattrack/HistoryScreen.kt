@@ -12,7 +12,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-data class EatingEvent(val id: Long, val timestamp: Long, val healthy: Boolean)
+data class EatingEvent(val id: Long, val timestamp: Long, val healthy: Boolean, val reasons: List<EatingReason> = emptyList())
 data class HistoryPage(val events: List<EatingEvent>, val hasMore: Boolean)
 
 @Composable
@@ -57,6 +57,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
                     Text(if (event.healthy) "אכילה בריאה" else "אכילה לא בריאה", Modifier.weight(2f),
                         color = if (event.healthy) Color(0xFF166534) else Color(0xFFB91C1C))
                 }
+                if (event.reasons.isNotEmpty()) Text("סיבות: " + event.reasons.joinToString(" · ") { it.label }, style = MaterialTheme.typography.bodyMedium)
                 HorizontalDivider()
             }
             if (loading) item { Text("טוען דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }

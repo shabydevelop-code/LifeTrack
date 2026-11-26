@@ -52,6 +52,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
         owner.lifecycle.addObserver(observer)
         onDispose { owner.lifecycle.removeObserver(observer) }
     }
+    model.pendingReasonId?.let { id -> key(id) { ReasonDialog(model) } }
     ModalNavigationDrawer(
         modifier = Modifier.fillMaxSize().background(Color(0xFF1E4064))
             .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.statusBars).union(WindowInsets.displayCutout).only(WindowInsetsSides.Top))

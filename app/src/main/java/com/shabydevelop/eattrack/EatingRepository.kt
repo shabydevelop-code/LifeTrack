@@ -9,12 +9,18 @@ import android.database.DatabaseUtils
 class EatingRepository(context: Context) {
     private val db = EatingDatabase(context.applicationContext)
 
-    fun addEvent(healthy: Boolean) {
+    fun addEvent(healthy: Boolean): Long {
         val values = ContentValues().apply {
             put("created_at", System.currentTimeMillis())
             put("healthy", if (healthy) 1 else 0)
         }
-        db.writableDatabase.insertOrThrow("unhealthy_eating_events", null, values)
+        return db.writableDatabase.insertOrThrow("unhealthy_eating_events", null, values)
+    }
+
+    fun saveReasons(id: Long, reasons: Set<EatingReason>) {
+        val values = ContentValues().apply { put("reasons", reasons.sortedBy { it.ordinal }.joinToString(",") { it.name }) }
+        if (db.writableDatabase.update("unhealthy_eating_events", values, "id = ? AND healthy = 0", arrayOf(id.toString())) != 1)
+            throw android.database.SQLException("Report not found")
     }
 
     fun undoLast(): Boolean {
@@ -72,10 +78,10 @@ class EatingRepository(context: Context) {
             args.add(before.timestamp.toString()); args.add(before.timestamp.toString()); args.add(before.id.toString())
         }
         val rows = mutableListOf<EatingEvent>()
-        db.readableDatabase.query("unhealthy_eating_events", arrayOf("id", "created_at", "healthy"),
+        db.readableDatabase.query("unhealthy_eating_events", arrayOf("id", "created_at", "healthy", "reasons"),
             clauses.takeIf { it.isNotEmpty() }?.joinToString(" AND "), args.toTypedArray(), null, null,
             "created_at DESC, id DESC", "31").use {
-            while (it.moveToNext()) rows.add(EatingEvent(it.getLong(0), it.getLong(1), it.getInt(2) == 1))
+            while (it.moveToNext()) rows.add(EatingEvent(it.getLong(0), it.getLong(1), it.getInt(2) == 1, it.getString(3).split(',').mapNotNull { code -> EatingReason.entries.firstOrNull { reason -> reason.name == code } }))
         }
         return HistoryPage(rows.take(30), rows.size > 30)
     }
@@ -86,9 +92,9 @@ class EatingRepository(context: Context) {
     fun count(healthy: Boolean): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events", "healthy = ?", arrayOf(if (healthy) "1" else "0"))
 }
 
-private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 3) {
+private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 4) {
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE unhealthy_eating_events (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL, healthy INTEGER NOT NULL DEFAULT 0 CHECK (healthy IN (0,1)))")
+        db.execSQL("CREATE TABLE unhealthy_eating_events (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL, healthy INTEGER NOT NULL DEFAULT 0 CHECK (healthy IN (0,1)), reasons TEXT NOT NULL DEFAULT '')")
         createIndex(db)
     }
 
@@ -101,5 +107,6 @@ private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eatt
             db.execSQL("ALTER TABLE unhealthy_eating_events ADD COLUMN healthy INTEGER NOT NULL DEFAULT 0 CHECK (healthy IN (0,1))")
         }
         if (oldVersion < 3) createIndex(db)
+        if (oldVersion < 4) db.execSQL("ALTER TABLE unhealthy_eating_events ADD COLUMN reasons TEXT NOT NULL DEFAULT ''")
     }
 }

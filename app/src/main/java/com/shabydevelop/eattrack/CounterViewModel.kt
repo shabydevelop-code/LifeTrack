@@ -25,6 +25,26 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         private set
     var successSequence by mutableLongStateOf(0L)
         private set
+    var pendingReasonId by mutableStateOf<Long?>(null)
+        private set
+    var reasonError by mutableStateOf(false)
+        private set
+    fun dismissReasons() { if (!busy) { pendingReasonId = null; reasonError = false } }
+    fun saveReasons(reasons: Set<EatingReason>) {
+        val id = pendingReasonId ?: return
+        if (busy) return
+        busy = true
+        reasonError = false
+        viewModelScope.launch {
+            try {
+                mutex.withLock { withContext(Dispatchers.IO) { repository.saveReasons(id, reasons) } }
+                pendingReasonId = null
+                feedback = "הסיבות נשמרו"
+                successSequence++
+            } catch (e: android.database.SQLException) { reasonError = true }
+            finally { busy = false }
+        }
+    }
     private var lastTap: Long? = null
 
     init { reload() }
@@ -33,7 +53,11 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         val now = SystemClock.elapsedRealtime()
         if (busy || lastTap?.let { now - it < 700L } == true) return
         lastTap = now
-        mutate { repository.addEvent(healthy); if (healthy) "דיווח אכילה בריאה נשמר" else "דיווח אכילה לא בריאה נשמר" }
+        mutate {
+            val id = repository.addEvent(healthy)
+            if (!healthy) withContext(Dispatchers.Main) { pendingReasonId = id; reasonError = false }
+            if (healthy) "דיווח אכילה בריאה נשמר" else "דיווח אכילה לא בריאה נשמר"
+        }
     }
     fun undo() = mutate {
         if (repository.undoLast()) "הדיווח האחרון בוטל" else "אין דיווח לביטול"
@@ -43,7 +67,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     suspend fun historyPage(days: Int?, healthy: Boolean?, before: EatingEvent?): HistoryPage =
         withContext(Dispatchers.IO) { repository.historyPage(days, healthy, before) }
 
-    private fun mutate(action: () -> String) {
+    private fun mutate(action: suspend () -> String) {
         if (busy) return
         busy = true
         feedback = ""
