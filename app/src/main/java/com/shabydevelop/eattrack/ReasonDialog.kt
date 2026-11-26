@@ -31,7 +31,7 @@ internal fun ReasonDialog(model: CounterViewModel) {
         onDismissRequest = model::dismissReasons,
         title = { Text(if (avoided) "מה עזר לי לוותר?" else "מה הוביל לאכילה?", style = UiTypography.sectionTitle) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
+            Column(Modifier.visibleVerticalScroll(rememberScrollState()).selectableGroup()) {
                 Text("הדיווח נשמר. אפשר לבחור סיבה מרכזית אחת או לדלג.")
                 options.forEach { reason ->
                     val checked = reason.name == selected

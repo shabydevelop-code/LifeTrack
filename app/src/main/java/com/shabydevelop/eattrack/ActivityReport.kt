@@ -29,7 +29,7 @@ internal fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityK
     AlertDialog(onDismissRequest = dismiss,
         title = { Text("פעילות אירובית", style = UiTypography.sectionTitle) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+            Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
                 Text("סוג הפעילות", style = UiTypography.body)
                 Column(Modifier.selectableGroup()) {
                     ActivityKind.entries.forEach { item ->
@@ -61,15 +61,17 @@ internal fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityK
 @Composable
 internal fun ActivitySummary(report: ActivityReport) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
-        Text("פעילות אירובית", color = UiColors.aerobic, style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
+        SectionHeader("פעילות אירובית", UiColors.aerobic)
+        val entries = listOf("היום" to report.today, "השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total)
+        val weights = listOf(1f, 1f, 1f, 1f)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            Row(Modifier.fillMaxWidth().padding(UiSpacing.small)) {
-                listOf("היום" to report.today, "השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total).forEach { (label, stats) ->
-                    Column(Modifier.weight(1f).clearAndSetSemantics { contentDescription = "$label: ${stats.count} פעילויות, ${stats.minutes} דקות" }, horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(label, style = UiTypography.tableHeading, textAlign = TextAlign.Center)
-                        Text(stats.count.toString(), color = UiColors.aerobic, style = UiTypography.counter)
-                        Text("${stats.minutes} דק׳", style = UiTypography.supporting, textAlign = TextAlign.Center)
-                    }
+            TableHeading(entries.map { it.first }, weights)
+            HorizontalDivider()
+            TableLine(weights, Modifier.padding(vertical = UiSpacing.normal)) { i ->
+                val (label, stats) = entries[i]
+                Column(Modifier.clearAndSetSemantics { contentDescription = "$label: ${stats.count} פעילויות, ${stats.minutes} דקות" }, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stats.count.toString(), color = UiColors.aerobic, style = UiTypography.tableCell)
+                    Text("${stats.minutes} דק׳", style = UiTypography.tableCell, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -80,7 +82,7 @@ internal fun ActivitySummary(report: ActivityReport) {
 internal fun ActivityChart(days: List<ActivityDay>) {
     val max = (days.maxOfOrNull { it.stats.minutes } ?: 0L).coerceAtLeast(1L)
     Column(verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-        Text("פעילות אירובית · דקות בשבעת הימים האחרונים", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
+        SectionHeader("פעילות אירובית · דקות בשבעת הימים האחרונים")
         days.forEach { day ->
             Row(Modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = "${day.label}: ${day.stats.minutes} דקות, ${day.stats.count} פעילויות" }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
                 Text(day.label, style = UiTypography.tableCell)

@@ -2,6 +2,14 @@ package com.shabydevelop.eattrack
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.contentDescription
@@ -112,3 +120,42 @@ internal fun AppHeader(title: String, onMenu: () -> Unit) {
         Spacer(Modifier.width(UiSpacing.touch))
     }
 }
+
+@Composable
+internal fun SectionHeader(label: String, color: Color = MaterialTheme.colorScheme.onSurface) {
+    Text(label, modifier = Modifier.fillMaxWidth().semantics { heading() }, style = UiTypography.sectionTitle,
+        color = color, textAlign = androidx.compose.ui.text.style.TextAlign.Start)
+}
+
+private fun Modifier.scrollIndicator(metrics: () -> Pair<Float, Float>?): Modifier = drawWithContent {
+    drawContent()
+    val (fraction, position) = metrics() ?: return@drawWithContent
+    val width = 4.dp.toPx()
+    val thumb = (size.height * fraction).coerceIn(minOf(24.dp.toPx(), size.height), size.height)
+    val x = if (layoutDirection == LayoutDirection.Rtl) 0f else size.width - width
+    drawRoundRect(Color(0xFFD1D5DB), Offset(x, 0f), Size(width, size.height), CornerRadius(width / 2))
+    drawRoundRect(Color(0xFF64748B), Offset(x, (size.height - thumb) * position.coerceIn(0f, 1f)), Size(width, thumb), CornerRadius(width / 2))
+}
+
+internal fun Modifier.visibleVerticalScroll(state: ScrollState): Modifier =
+    scrollIndicator {
+        val max = state.maxValue
+        if (max <= 0 || max == Int.MAX_VALUE || state.viewportSize <= 0) null
+        else state.viewportSize.toFloat() / (state.viewportSize.toFloat() + max) to state.value.toFloat() / max
+    }.padding(end = UiSpacing.normal).verticalScroll(state)
+
+internal fun Modifier.lazyScrollIndicator(state: LazyListState): Modifier =
+    scrollIndicator {
+        val info = state.layoutInfo
+        val total = info.totalItemsCount
+        val visible = info.visibleItemsInfo
+        if (total == 0 || visible.isEmpty() || (!state.canScrollForward && !state.canScrollBackward)) null
+        else {
+            val first = visible.first()
+            val last = visible.last()
+            val start = first.index + ((info.viewportStartOffset - first.offset).toFloat() / first.size.coerceAtLeast(1)).coerceIn(0f, 1f)
+            val end = last.index + ((info.viewportEndOffset - last.offset).toFloat() / last.size.coerceAtLeast(1)).coerceIn(0f, 1f)
+            val span = (end - start).coerceIn(0.01f, total.toFloat())
+            span / total to (start / (total - span).coerceAtLeast(0.01f))
+        }
+    }.padding(end = UiSpacing.normal)

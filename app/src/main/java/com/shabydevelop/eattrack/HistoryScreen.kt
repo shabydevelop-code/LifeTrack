@@ -65,7 +65,8 @@ internal fun HistoryScreen(model: CounterViewModel) {
             Spacer(Modifier.width(UiSpacing.touch))
         }
         if (model.error) Text("לא ניתן להשלים את הפעולה או לרענן את הנתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-        LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+        val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
+        LazyColumn(Modifier.weight(1f).fillMaxWidth().lazyScrollIndicator(scrollState), state = scrollState, verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {

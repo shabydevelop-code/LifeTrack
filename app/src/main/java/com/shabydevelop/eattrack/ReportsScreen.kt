@@ -22,12 +22,13 @@ data class EatingReport(val today: Long = 0, val week: Long = 0, val month: Long
 @Composable
 internal fun ReportsScreen(report: EatingReport, error: Boolean) {
     val maximum = (report.days.maxOfOrNull { maxOf(it.count, it.healthy, it.avoided) } ?: 0).coerceAtLeast(1)
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(UiSpacing.medium),
+    val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
+    LazyColumn(Modifier.fillMaxSize().lazyScrollIndicator(scrollState), state = scrollState, contentPadding = PaddingValues(UiSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         if (error) item { Text("לא ניתן לטעון נתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
-        item { Text("סיכום לפי תקופה", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() }) }
+        item { SectionHeader("סיכום לפי תקופה") }
         item { PeriodTable(report.periodRows(true), true) }
-        item { Text("שבעת הימים האחרונים", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() }) }
+        item { SectionHeader("שבעת הימים האחרונים") }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 reportLabels.forEachIndexed { i, label -> Text(label, color = reportColors[i], style = UiTypography.tableHeading) }
