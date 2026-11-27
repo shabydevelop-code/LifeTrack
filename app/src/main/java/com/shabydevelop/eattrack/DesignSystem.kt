@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 
@@ -38,6 +39,7 @@ internal object UiSpacing {
     val large = 24.dp
     val touch = 48.dp
     val action = touch
+    val actionHorizontalPadding = medium
 }
 
 internal object UiShapes {
@@ -80,18 +82,29 @@ internal fun EatTrackTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = lightColorScheme(primary = UiColors.primary), typography = UiTypography.material, content = content)
 }
 
+internal data class ReportActionSpec(val label: String, val color: Color, val enabled: Boolean, val onClick: () -> Unit)
+
 @Composable
-internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composable () -> Unit, minimumWidth: androidx.compose.ui.unit.Dp = 340.dp) {
+internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap: androidx.compose.ui.unit.Dp = UiSpacing.normal) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        if (maxWidth < minimumWidth || LocalDensity.current.fontScale >= 1.3f) {
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-                first()
-                second()
-            }
-        } else {
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-                Box(Modifier.weight(1f).fillMaxHeight(), propagateMinConstraints = true) { first() }
-                Box(Modifier.weight(1f).fillMaxHeight(), propagateMinConstraints = true) { second() }
+        val requiredCellWidth = actions.maxOfOrNull { action ->
+            val textWidth = measurer.measure(action.label, style = UiTypography.primaryAction,
+                softWrap = false, maxLines = 1).size.width
+            with(density) { textWidth.toDp() } + UiSpacing.actionHorizontalPadding * 2 + UiSpacing.tiny
+        }?.coerceAtLeast(UiSpacing.touch) ?: UiSpacing.touch
+        val twoColumns = maxWidth >= requiredCellWidth * 2 + UiSpacing.normal
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(verticalGap)) {
+            actions.chunked(if (twoColumns) 2 else 1).forEach { group ->
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+                    group.forEach { action ->
+                        Box(Modifier.weight(1f).fillMaxHeight(), propagateMinConstraints = true) {
+                            ReportAction(action.label, action.color, action.enabled, action.onClick)
+                        }
+                    }
+                }
             }
         }
     }
@@ -171,7 +184,7 @@ internal fun AppOutlinedButton(onClick: () -> Unit, modifier: Modifier = Modifie
     OutlinedButton(onClick = onClick, modifier = modifier.heightIn(min = UiSpacing.touch), enabled = enabled,
         shape = UiShapes.control, border = BorderStroke(1.dp, if (enabled) color else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = color),
-        contentPadding = PaddingValues(horizontal = UiSpacing.medium, vertical = UiSpacing.small), content = content)
+        contentPadding = PaddingValues(horizontal = UiSpacing.actionHorizontalPadding, vertical = UiSpacing.small), content = content)
 }
 
 @Composable
