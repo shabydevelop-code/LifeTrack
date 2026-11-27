@@ -85,7 +85,7 @@ fun NavigationShell(model: CounterViewModel, route: String, drawer: DrawerState,
                     else -> null
                 }
                 screenTitle?.let {
-                    Text(it, Modifier.fillMaxWidth().padding(horizontal = UiSpacing.screen, vertical = UiSpacing.normal).semantics { heading() }, style = UiTypography.screenTitle)
+                    Text(it, Modifier.fillMaxWidth().background(UiColors.screenTitleBackground).padding(horizontal = UiSpacing.screen, vertical = UiSpacing.normal).semantics { heading() }, color = UiColors.primary, style = UiTypography.screenTitle)
                 }
                 Box(Modifier.weight(1f)) { destination() }
             }

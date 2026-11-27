@@ -52,6 +52,7 @@ object UiShapes {
 
 object UiColors {
     val primary = Color(0xFF1E4064)
+    val screenTitleBackground = Color(0xFFE8EFF5)
     val healthy = Color(0xFF166534)
     val unhealthy = Color(0xFFB91C1C)
     val water = Color(0xFF0E7490)
