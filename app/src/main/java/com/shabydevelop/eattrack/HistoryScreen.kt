@@ -3,6 +3,10 @@ package com.shabydevelop.eattrack
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
@@ -60,14 +64,17 @@ internal fun HistoryScreen(model: CounterViewModel) {
             }
         }
         AdaptiveActionPair(filters, types)
-        val weights = listOf(0.8f, 1.5f, 2f)
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Box(Modifier.weight(1f)) { TableHeading(listOf("שעה", "סוג דיווח", "פרטים"), weights) }
-            Spacer(Modifier.width(UiSpacing.touch * 2))
+        val measurer = rememberTextMeasurer()
+        val timeWidth = with(LocalDensity.current) {
+            measurer.measure("88:88", style = UiTypography.tableCell).size.width.toDp() + UiSpacing.normal
+        }.coerceAtLeast(UiSpacing.touch)
+        Row(Modifier.fillMaxWidth().padding(end = UiSpacing.normal).background(MaterialTheme.colorScheme.surfaceVariant).padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
+            HistoryCells(timeWidth, "שעה", "סוג דיווח", "פרטים", heading = true, modifier = Modifier.weight(1f))
+            Text("פעולות", modifier = Modifier.width(UiSpacing.touch * 2), style = UiTypography.tableHeading, textAlign = TextAlign.Center)
         }
         if (model.error) Text("לא ניתן להשלים את הפעולה או לרענן את הנתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
-        LazyColumn(Modifier.weight(1f).fillMaxWidth().lazyScrollIndicator(scrollState), state = scrollState, verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+        LazyColumn(Modifier.weight(1f).fillMaxWidth().lazyScrollIndicator(scrollState), state = scrollState, verticalArrangement = Arrangement.spacedBy(UiSpacing.tiny)) {
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
@@ -76,17 +83,11 @@ internal fun HistoryScreen(model: CounterViewModel) {
                 val time = timeFormat.format(java.util.Date(event.timestamp))
                 val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else event.reasons.joinToString(" · ") { it.label }
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)) {
-                TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
-                    contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
-                }) { i ->
-                    when (i) {
-                        0 -> Text(time, style = UiTypography.tableCell)
-                        1 -> Text(event.type.label, style = UiTypography.tableCell, color = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic })
-                        else -> Text(reasons.ifEmpty { "—" }, style = UiTypography.tableCell)
-                    }
-                }
-                }
+                HistoryCells(timeWidth, time, event.type.label, reasons.ifEmpty { "—" },
+                    typeColor = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic },
+                    modifier = Modifier.weight(1f).clearAndSetSemantics {
+                        contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
+                    })
                 IconButton(onClick = { pendingEdit = event }, enabled = !model.busy, modifier = Modifier.size(UiSpacing.touch).semantics { contentDescription = "עריכת דיווח ${event.type.label}, $date, $time" }) {
                     androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.compactIcon)) {
                         val w = UiSpacing.tiny.toPx()
@@ -136,5 +137,17 @@ private fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selec
                     modifier = Modifier.semantics { this.selected = value == selected })
             }
         }
+    }
+}
+
+@Composable
+private fun HistoryCells(timeWidth: androidx.compose.ui.unit.Dp, time: String, type: String, details: String,
+    modifier: Modifier = Modifier, heading: Boolean = false, typeColor: Color = MaterialTheme.colorScheme.onSurface) {
+    val style = if (heading) UiTypography.tableHeading else UiTypography.tableCell
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(time, modifier = Modifier.width(timeWidth), style = if (heading) style else style.copy(textDirection = TextDirection.Ltr),
+            textAlign = TextAlign.Center, softWrap = false, maxLines = 1)
+        Text(type, modifier = Modifier.weight(1f).padding(horizontal = UiSpacing.cell), style = style, color = typeColor, textAlign = TextAlign.Center)
+        Text(details, modifier = Modifier.weight(1.4f).padding(horizontal = UiSpacing.cell), style = style, textAlign = TextAlign.Center)
     }
 }
