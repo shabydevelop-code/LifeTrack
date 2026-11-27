@@ -35,7 +35,7 @@ internal fun EatingReport.periodRows(includeToday: Boolean): List<PeriodRow> = l
 internal fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell: @Composable (Int) -> Unit) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         weights.forEachIndexed { index, weight ->
-            Box(Modifier.weight(weight).padding(horizontal = UiSpacing.cell), contentAlignment = if (index == 0) Alignment.CenterStart else Alignment.Center) { cell(index) }
+            Box(Modifier.weight(weight).padding(start = if (index == 0) UiSpacing.normal else UiSpacing.cell, end = UiSpacing.cell), contentAlignment = if (index == 0) Alignment.CenterStart else Alignment.Center) { cell(index) }
         }
     }
 }
