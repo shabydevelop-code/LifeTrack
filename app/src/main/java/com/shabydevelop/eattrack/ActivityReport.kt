@@ -82,7 +82,7 @@ internal fun ActivitySummary(report: ActivityReport) {
 internal fun ActivityChart(days: List<ActivityDay>) {
     val max = (days.maxOfOrNull { it.stats.minutes } ?: 0L).coerceAtLeast(1L)
     Column(verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-        SectionHeader("פעילות אירובית · דקות בשבעת הימים האחרונים", UiColors.aerobic)
+        SectionHeader("פעילות אירובית – 7 ימים (דק׳)", UiColors.aerobic)
         days.forEach { day ->
             Row(Modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = "${day.label}: ${day.stats.minutes} דקות, ${day.stats.count} פעילויות" }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
                 Text(day.label, style = UiTypography.tableCell)
