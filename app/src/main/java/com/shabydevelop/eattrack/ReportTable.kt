@@ -3,6 +3,13 @@ package com.shabydevelop.eattrack
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -35,25 +42,38 @@ internal fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell
 
 @Composable
 internal fun TableFrame(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    OutlinedCard(modifier.fillMaxWidth(), content = content)
+    OutlinedCard(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, content = content)
 }
 
 @Composable
 internal fun Modifier.tableHeaderBackground(): Modifier =
     background(MaterialTheme.colorScheme.surfaceVariant)
 
-// Continuous outline for a table whose rows are individual lazy-list items.
+// Match the Material outlined card shape and border while retaining lazy rows.
 @Composable
 internal fun Modifier.tableSegment(top: Boolean = false, bottom: Boolean = false): Modifier {
+    val cardShape = MaterialTheme.shapes.medium
+    val zero = CornerSize(0.dp)
+    val shape = cardShape.copy(
+        topStart = if (top) cardShape.topStart else zero,
+        topEnd = if (top) cardShape.topEnd else zero,
+        bottomStart = if (bottom) cardShape.bottomStart else zero,
+        bottomEnd = if (bottom) cardShape.bottomEnd else zero
+    )
     val color = MaterialTheme.colorScheme.outlineVariant
-    return drawWithContent {
+    return clip(shape).drawWithContent {
         drawContent()
         val w = 1.dp.toPx()
-        val inset = w / 2
-        drawLine(color, Offset(inset, 0f), Offset(inset, size.height), w)
-        drawLine(color, Offset(size.width - inset, 0f), Offset(size.width - inset, size.height), w)
-        if (top) drawLine(color, Offset(0f, inset), Offset(size.width, inset), w)
-        if (bottom) drawLine(color, Offset(0f, size.height - inset), Offset(size.width, size.height - inset), w)
+        val extra = w * 2
+        val outline = shape.createOutline(
+            Size(size.width - w, size.height - w + (if (top) 0f else extra) + (if (bottom) 0f else extra)),
+            layoutDirection, this
+        )
+        clipRect {
+            translate(w / 2, w / 2 - if (top) 0f else extra) {
+                drawOutline(outline, color, style = Stroke(w))
+            }
+        }
     }
 }
 

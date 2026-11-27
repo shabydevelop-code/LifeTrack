@@ -81,7 +81,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             }
         }
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
-                Column(Modifier.fillMaxWidth().tableSegment()) {
+                Column(Modifier.fillMaxWidth().tableSegment(bottom = index == rows.lastIndex)) {
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
                     Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().tableHeaderBackground().padding(horizontal = UiSpacing.normal, vertical = UiSpacing.small).semantics { heading() })
@@ -112,10 +112,10 @@ internal fun HistoryScreen(model: CounterViewModel) {
                     }
                 }
                 }
-                HorizontalDivider()
+                if (index != rows.lastIndex) HorizontalDivider()
                 }
             }
-            item(key = "table-bottom") { Box(Modifier.fillMaxWidth().height(UiSpacing.tiny).tableSegment(bottom = true)) }
+            if (rows.isEmpty()) item(key = "table-bottom") { Box(Modifier.fillMaxWidth().height(UiSpacing.large).tableSegment(bottom = true)) }
             item(key = "table-gap") { Spacer(Modifier.height(UiSpacing.normal)) }
             if (loading) item { Text("טוען דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
             if (error) item { Text("לא ניתן לטעון דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }); AppOutlinedButton(onClick = { retry++ }) { Text("נסה שוב") } }
