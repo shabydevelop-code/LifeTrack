@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class CounterViewModel(private val repository: EatingDataSource) : ViewModel() {
+class CounterViewModel(private val repository: EatingDataSource, private val clock: AppClock, private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher) : ViewModel() {
     private val mutex = Mutex()
     var report by mutableStateOf(EatingReport())
         private set
@@ -53,7 +53,7 @@ class CounterViewModel(private val repository: EatingDataSource) : ViewModel() {
         reasonError = false
         viewModelScope.launch {
             try {
-                mutex.withLock { withContext(Dispatchers.IO) { databaseOperation { repository.saveReasons(id, reasons, pendingReasonType) } } }
+                mutex.withLock { withContext(ioDispatcher) { repository.saveReasons(id, reasons, pendingReasonType) } }
                 feedbackType = pendingReasonType
                 closeReasons()
                 feedback = "הסיבות נשמרו"
@@ -77,7 +77,7 @@ class CounterViewModel(private val repository: EatingDataSource) : ViewModel() {
     }
     fun increment(type: EventType) {
         if (type == EventType.AEROBIC || type == EventType.WATER) return
-        val now = PlatformClock.monotonicMillis()
+        val now = clock.monotonicMillis()
         if (busy || lastTap?.let { now - it < 700L } == true) return
         lastTap = now
         mutate(type) {
@@ -95,12 +95,12 @@ class CounterViewModel(private val repository: EatingDataSource) : ViewModel() {
         viewModelScope.launch {
             try {
                 mutex.withLock {
-                    withContext(Dispatchers.IO) { databaseOperation { repository.updateEvent(event) } }
+                    withContext(ioDispatcher) { repository.updateEvent(event) }
                     feedbackType = event.type
                     feedback = "הדיווח עודכן"
                     successSequence++
                     try {
-                        report = withContext(Dispatchers.IO) { databaseOperation { repository.report() } }
+                        report = withContext(ioDispatcher) { repository.report() }
                         error = false
                     } catch (e: RepositoryFailure) { error = true }
                 }
@@ -119,7 +119,7 @@ class CounterViewModel(private val repository: EatingDataSource) : ViewModel() {
     fun reset() = mutate { repository.reset(); "ההיסטוריה נמחקה" }
 
     suspend fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage =
-        withContext(Dispatchers.IO) { databaseOperation { repository.historyPage(days, type, before) } }
+        withContext(ioDispatcher) { repository.historyPage(days, type, before) }
 
     private fun mutate(type: EventType? = null, action: suspend () -> String) {
         if (busy) return
@@ -128,11 +128,11 @@ class CounterViewModel(private val repository: EatingDataSource) : ViewModel() {
         viewModelScope.launch {
             try {
                 mutex.withLock {
-                    val message = withContext(Dispatchers.IO) { databaseOperation { action() } }
+                    val message = withContext(ioDispatcher) { action() }
                     feedbackType = type
                     feedback = message
                     successSequence++
-                    report = withContext(Dispatchers.IO) { databaseOperation { repository.report() } }
+                    report = withContext(ioDispatcher) { repository.report() }
                     error = false
                 }
             } catch (e: RepositoryFailure) {
@@ -148,7 +148,7 @@ class CounterViewModel(private val repository: EatingDataSource) : ViewModel() {
         viewModelScope.launch {
             mutex.withLock {
                 try {
-                    report = withContext(Dispatchers.IO) { databaseOperation { repository.report() } }
+                    report = withContext(ioDispatcher) { repository.report() }
                     error = false
                 } catch (e: RepositoryFailure) {
                     error = true

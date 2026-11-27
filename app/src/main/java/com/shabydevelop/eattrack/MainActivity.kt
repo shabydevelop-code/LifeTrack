@@ -34,7 +34,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 EatTrackTheme {
                     val model: CounterViewModel = viewModel(factory = androidx.lifecycle.viewmodel.viewModelFactory {
-                        initializer { CounterViewModel(EatingRepository(application)) }
+                        initializer { CounterViewModel(SafeEatingDataSource(EatingRepository(application)), PlatformClock, kotlinx.coroutines.Dispatchers.IO) }
                     })
                     EatingNavigation(model)
                 }
