@@ -59,10 +59,10 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
             ReportActionSpec("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) },
             ReportActionSpec("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) },
             ReportActionSpec("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) },
-            ReportActionSpec("שתיית מים", UiColors.water, !busy) { waterDialog = true }
+            ReportActionSpec("שתיית מים", UiColors.water, !busy) { waterDialog = true },
+            ReportActionSpec("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true },
+            ReportActionSpec("מעקב משקל", UiColors.primary, !busy) { openWeight() }
         ))
-        ReportAction("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true }
-        ReportAction("מעקב משקל", UiColors.primary, !busy, openWeight)
         Spacer(Modifier.height(UiSpacing.small))
         DailySummary(report)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
