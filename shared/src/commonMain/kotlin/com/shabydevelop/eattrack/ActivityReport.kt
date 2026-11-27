@@ -15,7 +15,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityKind, Int) -> Unit) {
+fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityKind, Int) -> Unit) {
     var kind by rememberSaveable { mutableStateOf(ActivityKind.WALK.name) }
     var minutes by rememberSaveable { mutableIntStateOf(30) }
     AlertDialog(onDismissRequest = dismiss,
@@ -51,7 +51,7 @@ internal fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityK
 }
 
 @Composable
-internal fun ActivitySummary(report: ActivityReport) {
+fun ActivitySummary(report: ActivityReport) {
     val entries = listOf("היום" to report.today, "השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total)
     val weights = List(4) { 1f }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
@@ -68,7 +68,7 @@ internal fun ActivitySummary(report: ActivityReport) {
 }
 
 @Composable
-internal fun ActivityChart(days: List<ActivityDay>) {
+fun ActivityChart(days: List<ActivityDay>) {
     val max = (days.maxOfOrNull { it.stats.minutes } ?: 0L).coerceAtLeast(1L)
     val weights = listOf(1f, 3f, 1f)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {

@@ -17,7 +17,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun ReasonDialog(model: CounterViewModel) {
+fun ReasonDialog(model: CounterViewModel) {
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     val avoided = model.pendingReasonType == EventType.AVOIDED
     val options = reasonOptions(model.pendingReasonType)

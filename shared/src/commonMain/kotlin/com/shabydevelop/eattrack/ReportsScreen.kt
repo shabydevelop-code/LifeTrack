@@ -10,7 +10,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.*
 
 @Composable
-internal fun ReportsScreen(report: EatingReport, error: Boolean) {
+fun ReportsScreen(report: EatingReport, error: Boolean) {
     val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
     LazyColumn(Modifier.fillMaxSize().lazyScrollIndicator(scrollState), state = scrollState, contentPadding = PaddingValues(UiSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {

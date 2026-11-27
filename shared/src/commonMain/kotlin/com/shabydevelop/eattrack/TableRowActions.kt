@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.*
 @Composable
-internal fun TableRowActions(description: String, enabled: Boolean, edit: () -> Unit, delete: () -> Unit) {
+fun TableRowActions(description: String, enabled: Boolean, edit: () -> Unit, delete: () -> Unit) {
     Row {
                 IconButton(onClick = edit, enabled = enabled, modifier = Modifier.size(UiSpacing.touch).semantics { contentDescription = "עריכת $description" }) {
                     androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.tableActionIcon)) {

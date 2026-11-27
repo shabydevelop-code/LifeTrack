@@ -13,14 +13,14 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.input.KeyboardType
 
 @Composable
-internal fun WaterAmountField(value: String, change: (String) -> Unit, enabled: Boolean) {
+fun WaterAmountField(value: String, change: (String) -> Unit, enabled: Boolean) {
     OutlinedTextField(value = value, onValueChange = { change(it.filter(Char::isDigit)) }, enabled = enabled, singleLine = true,
         label = { Text("כמות במ״ל") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         isError = (value.toIntOrNull() ?: 0) <= 0, modifier = Modifier.fillMaxWidth())
 }
 
 @Composable
-internal fun WaterDialog(busy: Boolean, dismiss: () -> Unit, save: (Int) -> Unit) {
+fun WaterDialog(busy: Boolean, dismiss: () -> Unit, save: (Int) -> Unit) {
     var amount by rememberSaveable { mutableStateOf("250") }
     AlertDialog(onDismissRequest = { if (!busy) dismiss() },
         title = { Text("שתיית מים", color = UiColors.water, style = UiTypography.sectionTitle) },
@@ -39,7 +39,7 @@ internal fun WaterDialog(busy: Boolean, dismiss: () -> Unit, save: (Int) -> Unit
 }
 
 @Composable
-internal fun WaterSummary(report: WaterReport) {
+fun WaterSummary(report: WaterReport) {
     val entries = listOf("היום" to report.today, "השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total)
     val weights = List(4) { 1f }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
@@ -56,7 +56,7 @@ internal fun WaterSummary(report: WaterReport) {
 }
 
 @Composable
-internal fun WaterChart(days: List<WaterDay>) {
+fun WaterChart(days: List<WaterDay>) {
     val max = (days.maxOfOrNull { it.stats.milliliters } ?: 0L).coerceAtLeast(1L)
     val weights = listOf(1f, 3f, 1f)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {

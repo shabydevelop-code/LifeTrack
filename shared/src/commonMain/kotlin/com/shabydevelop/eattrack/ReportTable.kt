@@ -20,10 +20,10 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-internal val reportLabels = listOf("בריאה", "לא בריאה", "ויתור")
-internal val reportColors = listOf(UiColors.healthy, UiColors.unhealthy, UiColors.avoided)
+val reportLabels = listOf("בריאה", "לא בריאה", "ויתור")
+val reportColors = listOf(UiColors.healthy, UiColors.unhealthy, UiColors.avoided)
 @Composable
-internal fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell: @Composable (Int) -> Unit) {
+fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell: @Composable (Int) -> Unit) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         weights.forEachIndexed { index, weight ->
             Box(Modifier.weight(weight).padding(start = if (index == 0) UiSpacing.normal else UiSpacing.cell, end = UiSpacing.cell), contentAlignment = if (index == 0) Alignment.CenterStart else Alignment.Center) { cell(index) }
@@ -32,17 +32,17 @@ internal fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell
 }
 
 @Composable
-internal fun TableFrame(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun TableFrame(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     OutlinedCard(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium, content = content)
 }
 
 @Composable
-internal fun Modifier.tableHeaderBackground(): Modifier =
+fun Modifier.tableHeaderBackground(): Modifier =
     background(MaterialTheme.colorScheme.surfaceVariant)
 
 // Match the Material outlined card shape and border while retaining lazy rows.
 @Composable
-internal fun Modifier.tableSegment(top: Boolean = false, bottom: Boolean = false): Modifier {
+fun Modifier.tableSegment(top: Boolean = false, bottom: Boolean = false): Modifier {
     val cardShape = MaterialTheme.shapes.medium
     val zero = CornerSize(0.dp)
     val shape = cardShape.copy(
@@ -69,19 +69,19 @@ internal fun Modifier.tableSegment(top: Boolean = false, bottom: Boolean = false
 }
 
 @Composable
-internal fun TableHeading(labels: List<String>, weights: List<Float>, colors: List<Color>? = null) {
+fun TableHeading(labels: List<String>, weights: List<Float>, colors: List<Color>? = null) {
     TableLine(weights, Modifier.tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }) { i ->
         Text(labels[i], style = UiTypography.tableHeading, color = colors?.getOrNull(i) ?: MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
     }
 }
 
 @Composable
-internal fun MetricValue(value: String, color: Color, modifier: Modifier = Modifier) {
+fun MetricValue(value: String, color: Color, modifier: Modifier = Modifier) {
     Text(value, modifier = modifier, color = color, style = UiTypography.tableCell, textAlign = TextAlign.Center)
 }
 
 @Composable
-internal fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
+fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
     val weights = if (showRanges) listOf(1.5f, 1f, 1.15f, 1f) else listOf(1f, 1f, 1.15f, 1f)
     TableFrame {
         TableHeading(listOf("תקופה") + reportLabels, weights, listOf(MaterialTheme.colorScheme.onSurfaceVariant) + reportColors)
@@ -102,7 +102,7 @@ internal fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
 private data class DailySummaryRow(val label: String, val value: String, val color: Color)
 
 @Composable
-internal fun DailySummary(report: EatingReport) {
+fun DailySummary(report: EatingReport) {
     val rows = listOf(
         DailySummaryRow("אכילה בריאה", report.healthyToday.toString(), UiColors.healthy),
         DailySummaryRow("אכילה לא בריאה", report.today.toString(), UiColors.unhealthy),
