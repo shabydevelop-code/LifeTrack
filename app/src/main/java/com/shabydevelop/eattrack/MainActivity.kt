@@ -47,13 +47,14 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
     var waterDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (waterDialog) WaterDialog(busy, { waterDialog = false }, { amount -> waterDialog = false; addWater(amount) })
     BoxWithConstraints(Modifier.fillMaxSize()) {
-    val gap = (maxHeight * 0.014f).coerceIn(UiSpacing.compact, UiSpacing.medium)
+    val availableHeight = maxHeight
+    val gap = (availableHeight * 0.014f).coerceIn(UiSpacing.compact, UiSpacing.medium)
     Column(
         modifier = Modifier.fillMaxSize().visibleVerticalScroll(rememberScrollState()).padding(horizontal = UiSpacing.screen, vertical = gap),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap)
     ) {
-        HomeBanner(availableHeight = maxHeight)
+        HomeBanner(availableHeight = availableHeight)
         AdaptiveReportActions(listOf(
             ReportActionSpec("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) },
             ReportActionSpec("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) },
