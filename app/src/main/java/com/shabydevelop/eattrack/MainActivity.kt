@@ -61,10 +61,10 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         }
         AdaptiveActionPair(
             { ReportAction("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) } },
-            { ReportAction("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) } })
+            { ReportAction("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) } }, minimumWidth = 280.dp)
         AdaptiveActionPair(
             { ReportAction("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) } },
-            { ReportAction("שתיית מים", UiColors.water, !busy) { waterDialog = true } })
+            { ReportAction("שתיית מים", UiColors.water, !busy) { waterDialog = true } }, minimumWidth = 280.dp)
         ReportAction("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true }
         Spacer(Modifier.height(UiSpacing.small))
         HorizontalDivider()

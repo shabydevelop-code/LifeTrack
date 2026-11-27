@@ -81,9 +81,9 @@ internal fun EatTrackTheme(content: @Composable () -> Unit) {
 }
 
 @Composable
-internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composable () -> Unit) {
+internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composable () -> Unit, minimumWidth: androidx.compose.ui.unit.Dp = 340.dp) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        if (maxWidth < 340.dp || LocalDensity.current.fontScale >= 1.3f) {
+        if (maxWidth < minimumWidth || LocalDensity.current.fontScale >= 1.3f) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
                 first()
                 second()
