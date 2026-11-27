@@ -27,6 +27,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf(false) }
     var retry by remember { mutableIntStateOf(0) }
+    var pendingEdit by remember { mutableStateOf<EatingEvent?>(null) }
     var pendingDelete by remember { mutableStateOf<EatingEvent?>(null) }
     var loadedSequence by remember { mutableLongStateOf(model.successSequence) }
     val days = period.takeIf { it > 0 }
@@ -62,7 +63,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
         val weights = listOf(0.8f, 1.5f, 2f)
         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             Box(Modifier.weight(1f)) { TableHeading(listOf("שעה", "סוג דיווח", "פרטים"), weights) }
-            Spacer(Modifier.width(UiSpacing.touch))
+            Spacer(Modifier.width(UiSpacing.touch * 2))
         }
         if (model.error) Text("לא ניתן להשלים את הפעולה או לרענן את הנתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
@@ -70,7 +71,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
-                    Text(date, style = UiTypography.sectionTitle, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(UiSpacing.normal).semantics { heading() })
+                    Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(UiSpacing.small).semantics { heading() })
                 }
                 val time = timeFormat.format(java.util.Date(event.timestamp))
                 val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else event.reasons.joinToString(" · ") { it.label }
@@ -85,6 +86,13 @@ internal fun HistoryScreen(model: CounterViewModel) {
                         else -> Text(reasons.ifEmpty { "—" }, style = UiTypography.tableCell)
                     }
                 }
+                }
+                IconButton(onClick = { pendingEdit = event }, enabled = !model.busy, modifier = Modifier.size(UiSpacing.touch).semantics { contentDescription = "עריכת דיווח ${event.type.label}, $date, $time" }) {
+                    androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.large)) {
+                        val w = UiSpacing.tiny.toPx()
+                        fun line(x1: Float, y1: Float, x2: Float, y2: Float) = drawLine(UiColors.primary, androidx.compose.ui.geometry.Offset(size.width*x1,size.height*y1), androidx.compose.ui.geometry.Offset(size.width*x2,size.height*y2), w)
+                        line(.15f,.85f,.22f,.55f); line(.22f,.55f,.72f,.05f); line(.72f,.05f,.95f,.28f); line(.95f,.28f,.45f,.78f); line(.45f,.78f,.15f,.85f); line(.62f,.15f,.85f,.38f)
+                    }
                 }
                 IconButton(onClick = { pendingDelete = event }, enabled = !model.busy, modifier = Modifier.size(UiSpacing.touch).semantics { contentDescription = "מחיקת דיווח ${event.type.label}, $date, $time" }) {
                     androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.large)) {
@@ -105,6 +113,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             if (more && !loading && !error) item { AppOutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) { Text("טעינת דיווחים נוספים") } }
         }
     }
+    pendingEdit?.let { event -> EditEventDialog(event, model, { pendingEdit = null }) }
     pendingDelete?.let { event ->
         AlertDialog(onDismissRequest = { pendingDelete = null },
             title = { Text("מחיקת דיווח", style = UiTypography.sectionTitle) },

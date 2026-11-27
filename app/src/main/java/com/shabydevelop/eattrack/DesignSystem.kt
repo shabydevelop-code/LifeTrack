@@ -61,6 +61,7 @@ internal object UiTypography {
     val body = style(16, 24)
     val secondaryAction = style(16, 24, FontWeight.Medium)
     val tableCell = style(14, 20)
+    val dateHeading = style(14, 20, FontWeight.Medium)
     val tableHeading = style(14, 20, FontWeight.Medium)
     val supporting = style(12, 16)
     val counter = style(18, 24, FontWeight.SemiBold)

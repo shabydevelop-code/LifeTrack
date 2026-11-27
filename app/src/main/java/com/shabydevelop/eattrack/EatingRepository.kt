@@ -25,6 +25,20 @@ class EatingRepository(context: Context) {
             throw android.database.SQLException("Report not found")
     }
 
+    fun updateEvent(event: EatingEvent) {
+        val aerobic = event.type == EventType.AEROBIC
+        require(!aerobic || (event.activity != null && event.minutes > 0))
+        val values = ContentValues().apply {
+            put("created_at", event.timestamp)
+            put("event_type", event.type.name)
+            put("reasons", if (event.type == EventType.UNHEALTHY || event.type == EventType.AVOIDED) event.reasons.joinToString(",") { it.name } else "")
+            put("activity_kind", if (aerobic) event.activity!!.name else "")
+            put("minutes", if (aerobic) event.minutes else 0)
+        }
+        if (db.writableDatabase.update("unhealthy_eating_events", values, "id = ?", arrayOf(event.id.toString())) != 1)
+            throw android.database.SQLException("Report not found")
+    }
+
     fun deleteEvent(id: Long): Boolean =
         db.writableDatabase.delete("unhealthy_eating_events", "id = ?", arrayOf(id.toString())) == 1
 

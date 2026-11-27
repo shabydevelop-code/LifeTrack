@@ -83,6 +83,25 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
             "דיווח ${type.label} נשמר"
         }
     }
+    fun updateEvent(event: EatingEvent, completed: (Boolean) -> Unit) {
+        if (busy) return
+        busy = true
+        viewModelScope.launch {
+            try {
+                mutex.withLock {
+                    withContext(Dispatchers.IO) { repository.updateEvent(event) }
+                    successSequence++
+                    feedback = "הדיווח עודכן"
+                    try {
+                        report = withContext(Dispatchers.IO) { repository.report() }
+                        error = false
+                    } catch (e: android.database.SQLException) { error = true }
+                }
+                completed(true)
+            } catch (e: android.database.SQLException) { completed(false) }
+            finally { busy = false }
+        }
+    }
     fun deleteEvent(id: Long) = mutate {
         if (!repository.deleteEvent(id)) throw android.database.SQLException("Report not found")
         "הדיווח נמחק"

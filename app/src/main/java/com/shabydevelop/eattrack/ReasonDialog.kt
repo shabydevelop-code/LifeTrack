@@ -26,7 +26,7 @@ enum class EatingReason(val label: String) {
 internal fun ReasonDialog(model: CounterViewModel) {
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     val avoided = model.pendingReasonType == EventType.AVOIDED
-    val options = if (avoided) listOf(EatingReason.GOAL, EatingReason.ALTERNATIVE, EatingReason.DISTRACTION, EatingReason.DISTANCE, EatingReason.WAITED, EatingReason.NOT_HUNGRY, EatingReason.OTHER) else EatingReason.entries.takeWhile { it != EatingReason.GOAL }
+    val options = reasonOptions(model.pendingReasonType)
     AlertDialog(
         onDismissRequest = model::dismissReasons,
         title = { Text(if (avoided) "מה עזר לי לוותר?" else "מה הוביל לאכילה?", style = UiTypography.sectionTitle) },
@@ -51,3 +51,5 @@ internal fun ReasonDialog(model: CounterViewModel) {
         dismissButton = { AppTextButton(enabled = !model.busy, onClick = model::dismissReasons) { Text("דילוג", style = UiTypography.secondaryAction) } }
     )
 }
+
+internal fun reasonOptions(type: EventType): List<EatingReason> = if (type == EventType.AVOIDED) listOf(EatingReason.GOAL, EatingReason.ALTERNATIVE, EatingReason.DISTRACTION, EatingReason.DISTANCE, EatingReason.WAITED, EatingReason.NOT_HUNGRY, EatingReason.OTHER) else EatingReason.entries.takeWhile { it != EatingReason.GOAL }
