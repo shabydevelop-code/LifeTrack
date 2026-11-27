@@ -81,15 +81,24 @@ internal fun ActivitySummary(report: ActivityReport) {
 @Composable
 internal fun ActivityChart(days: List<ActivityDay>) {
     val max = (days.maxOfOrNull { it.stats.minutes } ?: 0L).coerceAtLeast(1L)
-    Column(verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-        SectionHeader("פעילות אירובית – 7 ימים (דק׳)", UiColors.aerobic)
-        days.forEach { day ->
-            Row(Modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = "${day.label}: ${day.stats.minutes} דקות, ${day.stats.count} פעילויות" }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-                Text(day.label, style = UiTypography.tableCell)
-                Box(Modifier.weight(1f).height(UiSpacing.medium)) {
-                    Box(Modifier.fillMaxWidth(day.stats.minutes.toFloat()/max.toFloat()).fillMaxHeight().background(UiColors.aerobic))
+    val weights = listOf(1f, 3f, 1f)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
+        SectionHeader("פעילות אירובית – 7 ימים", UiColors.aerobic)
+        OutlinedCard(Modifier.fillMaxWidth()) {
+            TableHeading(listOf("תאריך", "משך הפעילות", "דקות"), weights, List(3) { UiColors.aerobic })
+            days.forEach { day ->
+                HorizontalDivider()
+                TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
+                    contentDescription = "${day.label}: ${day.stats.minutes} דקות, ${day.stats.count} פעילויות"
+                }) { i ->
+                    when (i) {
+                        0 -> Text(day.label, style = UiTypography.tableCell)
+                        1 -> Box(Modifier.fillMaxWidth().height(UiSpacing.medium)) {
+                            Box(Modifier.fillMaxWidth(day.stats.minutes.toFloat()/max.toFloat()).fillMaxHeight().background(UiColors.aerobic))
+                        }
+                        else -> Text(day.stats.minutes.toString(), style = UiTypography.tableCell, textAlign = TextAlign.Center)
+                    }
                 }
-                Text(day.stats.minutes.toString(), style = UiTypography.tableCell)
             }
         }
     }
