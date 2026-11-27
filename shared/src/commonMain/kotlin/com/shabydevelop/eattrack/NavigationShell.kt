@@ -74,9 +74,19 @@ fun NavigationShell(model: CounterViewModel, route: String, drawer: DrawerState,
         Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 AppHeader(
-                    title = when (route) { "reports" -> "דוחות"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; "weight" -> "מעקב משקל"; else -> "מעקב אורח חיים" },
+                    title = "מעקב אורח חיים",
                     onMenu = { scope.launch { drawer.open() } }
                 )
+                val screenTitle = when (route) {
+                    "reports" -> "דוחות"
+                    "history" -> "היסטוריית דיווחים"
+                    "settings" -> "הגדרות"
+                    "weight" -> "מעקב משקל"
+                    else -> null
+                }
+                screenTitle?.let {
+                    Text(it, Modifier.fillMaxWidth().padding(horizontal = UiSpacing.screen, vertical = UiSpacing.normal).semantics { heading() }, style = UiTypography.screenTitle)
+                }
                 Box(Modifier.weight(1f)) { destination() }
             }
         }
