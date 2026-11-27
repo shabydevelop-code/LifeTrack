@@ -82,6 +82,24 @@ internal fun EatTrackTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = lightColorScheme(primary = UiColors.primary), typography = UiTypography.material, content = content)
 }
 
+// Generic paired controls (including non-button controls such as history filters).
+@Composable
+internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composable () -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        if (maxWidth < 340.dp || LocalDensity.current.fontScale >= 1.3f) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+                first()
+                second()
+            }
+        } else {
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+                Box(Modifier.weight(1f).fillMaxHeight(), propagateMinConstraints = true) { first() }
+                Box(Modifier.weight(1f).fillMaxHeight(), propagateMinConstraints = true) { second() }
+            }
+        }
+    }
+}
+
 internal data class ReportActionSpec(val label: String, val color: Color, val enabled: Boolean, val onClick: () -> Unit)
 
 @Composable
