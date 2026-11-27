@@ -100,13 +100,13 @@ class EatingRepository(context: Context) {
         }
         if (type != null) { clauses.add("event_type = ?"); args.add(type.name) }
         if (before != null) {
-            clauses.add("(created_at < ? OR (created_at = ? AND id < ?))")
+            clauses.add("(created_at > ? OR (created_at = ? AND id > ?))")
             args.add(before.timestamp.toString()); args.add(before.timestamp.toString()); args.add(before.id.toString())
         }
         val rows = mutableListOf<EatingEvent>()
         db.readableDatabase.query("unhealthy_eating_events", arrayOf("id", "created_at", "event_type", "reasons", "activity_kind", "minutes"),
             clauses.takeIf { it.isNotEmpty() }?.joinToString(" AND "), args.toTypedArray(), null, null,
-            "created_at DESC, id DESC", "31").use {
+            "created_at ASC, id ASC", "31").use {
             while (it.moveToNext()) rows.add(EatingEvent(it.getLong(0), it.getLong(1), EventType.valueOf(it.getString(2)), it.getString(3).split(',').mapNotNull { code -> EatingReason.entries.firstOrNull { reason -> reason.name == code } }, ActivityKind.entries.firstOrNull { kind -> kind.name == it.getString(4) }, it.getInt(5)))
         }
         return HistoryPage(rows.take(30), rows.size > 30)

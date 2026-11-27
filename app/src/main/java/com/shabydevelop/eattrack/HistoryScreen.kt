@@ -88,7 +88,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
                 }
                 }
                 IconButton(onClick = { pendingEdit = event }, enabled = !model.busy, modifier = Modifier.size(UiSpacing.touch).semantics { contentDescription = "עריכת דיווח ${event.type.label}, $date, $time" }) {
-                    androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.large)) {
+                    androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.compactIcon)) {
                         val w = UiSpacing.tiny.toPx()
                         fun line(x1: Float, y1: Float, x2: Float, y2: Float) = drawLine(UiColors.primary, androidx.compose.ui.geometry.Offset(size.width*x1,size.height*y1), androidx.compose.ui.geometry.Offset(size.width*x2,size.height*y2), w)
                         line(.15f,.85f,.22f,.55f); line(.22f,.55f,.72f,.05f); line(.72f,.05f,.95f,.28f); line(.95f,.28f,.45f,.78f); line(.45f,.78f,.15f,.85f); line(.62f,.15f,.85f,.38f)
