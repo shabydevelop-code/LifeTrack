@@ -53,12 +53,6 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap)
     ) {
-        SectionHeader("סיכום אכילה יומי · " + report.todayLabel)
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-            CompactSummary("בריאה", report.healthyToday, Modifier.weight(1f).fillMaxHeight())
-            CompactSummary("לא בריאה", report.today, Modifier.weight(1f).fillMaxHeight())
-            CompactSummary("ויתור", report.avoidedToday, Modifier.weight(1f).fillMaxHeight())
-        }
         AdaptiveReportActions(listOf(
             ReportActionSpec("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) },
             ReportActionSpec("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) },
@@ -68,8 +62,8 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         ReportAction("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true }
         Spacer(Modifier.height(UiSpacing.small))
         HorizontalDivider()
-        SectionHeader("סיכום אכילה מצטבר")
-        PeriodTable(report.periodRows(false), false)
+        SectionHeader("סיכום אכילה")
+        PeriodTable(report.periodRows(true), false)
         WaterSummary(report.water)
         ActivitySummary(report.activity)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
