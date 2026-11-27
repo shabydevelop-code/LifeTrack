@@ -94,9 +94,9 @@ internal fun EatingNavigation(model: CounterViewModel) {
                     onMenu = { scope.launch { drawer.open() } }
                 )
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
-                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model::addWater, model.busy) { nav.navigate("weight") } }
+                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model::addWater, model.busy, banner = { HomeBanner(it) }) { nav.navigate("weight") } }
                     composable("reports") { ReportsScreen(model.report, model.error) }
-                    composable("history") { HistoryScreen(model) }
+                    composable("history") { HistoryScreen(model, PlatformDateTime::date, PlatformDateTime::time) { event, dismiss -> EditEventDialog(event, model, PlatformClock, { timestamp, enabled, change -> DateTimeFields(timestamp, enabled, change) }, dismiss) } }
                     composable("settings") { ProtectedArea { SettingsScreen(model) } }
                     composable("weight") { ProtectedArea { WeightScreen() } }
                 }

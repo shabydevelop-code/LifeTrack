@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun HistoryScreen(model: CounterViewModel) {
+fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatTime: (Long) -> String, editDialog: @Composable (EatingEvent, () -> Unit) -> Unit) {
     var period by rememberSaveable { mutableIntStateOf(7) }
     var type by rememberSaveable { mutableIntStateOf(0) }
     var pageCount by remember { mutableIntStateOf(1) }
@@ -77,11 +77,11 @@ internal fun HistoryScreen(model: CounterViewModel) {
         }
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 Column(Modifier.fillMaxWidth().tableSegment(bottom = index == rows.lastIndex)) {
-                val date = PlatformDateTime.date(event.timestamp)
-                if (index == 0 || date != PlatformDateTime.date(rows[index - 1].timestamp)) {
+                val date = formatDate(event.timestamp)
+                if (index == 0 || date != formatDate(rows[index - 1].timestamp)) {
                     Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().tableHeaderBackground().padding(horizontal = UiSpacing.normal, vertical = UiSpacing.small).semantics { heading() })
                 }
-                val time = PlatformDateTime.time(event.timestamp)
+                val time = formatTime(event.timestamp)
                 val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 HistoryCells(timeWidth, time, event.type.label, reasons.ifEmpty { "—" },
@@ -101,18 +101,18 @@ internal fun HistoryScreen(model: CounterViewModel) {
             if (!loading && !error && rows.isEmpty()) item { Text("אין דיווחים בתקופה שנבחרה") }
             if (more && !loading && !error) item { AppOutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) { Text("טעינת דיווחים נוספים") } }
     }
-    pendingEdit?.let { event -> EditEventDialog(event, model, { pendingEdit = null }) }
+    pendingEdit?.let { event -> editDialog(event) { pendingEdit = null } }
     pendingDelete?.let { event ->
         AlertDialog(onDismissRequest = { pendingDelete = null },
             title = { Text("מחיקת דיווח", style = UiTypography.sectionTitle) },
-            text = { Text("${event.type.label}\n${PlatformDateTime.date(event.timestamp)} · ${PlatformDateTime.time(event.timestamp)}\nהדיווח יימחק לצמיתות. להמשיך?", style = UiTypography.body) },
+            text = { Text("${event.type.label}\n${formatDate(event.timestamp)} · ${formatTime(event.timestamp)}\nהדיווח יימחק לצמיתות. להמשיך?", style = UiTypography.body) },
             confirmButton = { AppTextButton(color = UiColors.unhealthy, enabled = !model.busy, onClick = { pendingDelete = null; model.deleteEvent(event.id) }) { Text("מחיקה", style = UiTypography.secondaryAction) } },
             dismissButton = { AppTextButton(onClick = { pendingDelete = null }) { Text("ביטול", style = UiTypography.secondaryAction) } })
     }
 }
 
 @Composable
-internal fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selected: Int, enabled: Boolean = true, select: (Int) -> Unit) {
+fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selected: Int, enabled: Boolean = true, select: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth(), propagateMinConstraints = true) {
         AppOutlinedButton(onClick = { expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) {

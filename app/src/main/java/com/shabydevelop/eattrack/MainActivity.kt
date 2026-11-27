@@ -43,33 +43,3 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
     }
 }
 
-@Composable
-internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, addActivity: (ActivityKind, Int) -> Unit, addWater: (Int) -> Unit, busy: Boolean, openWeight: () -> Unit) {
-    var activityDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
-    if (activityDialog) ActivityDialog(busy, { activityDialog = false }, { kind, minutes -> activityDialog = false; addActivity(kind, minutes) })
-    var waterDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
-    if (waterDialog) WaterDialog(busy, { waterDialog = false }, { amount -> waterDialog = false; addWater(amount) })
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-    val availableHeight = maxHeight
-    val gap = (availableHeight * 0.014f).coerceIn(UiSpacing.compact, UiSpacing.medium)
-    Column(
-        modifier = Modifier.fillMaxSize().visibleVerticalScroll(rememberScrollState()).padding(horizontal = UiSpacing.screen, vertical = gap),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(gap)
-    ) {
-        HomeBanner(availableHeight = availableHeight)
-        AdaptiveReportActions(listOf(
-            ReportActionSpec("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) },
-            ReportActionSpec("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) },
-            ReportActionSpec("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) },
-            ReportActionSpec("שתיית מים", UiColors.water, !busy) { waterDialog = true },
-            ReportActionSpec("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true },
-            ReportActionSpec("מעקב משקל", UiColors.primary, !busy, protected = true) { openWeight() }
-        ))
-        Spacer(Modifier.height(UiSpacing.small))
-        DailySummary(report)
-        if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-    }
-    }
-}
-

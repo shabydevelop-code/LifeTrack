@@ -10,7 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.semantics.*
 
 @Composable
-internal fun SettingsScreen(model: CounterViewModel) {
+fun SettingsScreen(model: CounterViewModel) {
     var confirm by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().visibleVerticalScroll(rememberScrollState()).padding(UiSpacing.screen), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         AppOutlinedButton(color = UiColors.unhealthy, onClick = { confirm = true }, enabled = !model.busy && model.count > 0,
