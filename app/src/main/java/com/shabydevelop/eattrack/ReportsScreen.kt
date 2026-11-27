@@ -1,13 +1,10 @@
 package com.shabydevelop.eattrack
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.*
@@ -35,7 +32,6 @@ internal fun ReportsScreen(report: EatingReport, error: Boolean) {
 
 @Composable
 private fun EatingChart(days: List<DayCount>) {
-    val maximum = (days.maxOfOrNull { maxOf(it.count, it.healthy, it.avoided) } ?: 0L).coerceAtLeast(1L)
     val weights = listOf(1f, 1f, 1.15f, 1f)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("דפוסי אכילה – 7 ימים")
@@ -52,13 +48,7 @@ private fun EatingChart(days: List<DayCount>) {
                     else {
                         val count = counts[i - 1]
                         val color = reportColors[i - 1]
-                        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
-                            Text(count.toString(), color = color, style = UiTypography.tableCell)
-                            Box(Modifier.fillMaxWidth().height(UiSpacing.compact).background(MaterialTheme.colorScheme.surfaceVariant)) {
-                                Box(Modifier.fillMaxWidth(count.toFloat() / maximum.toFloat()).fillMaxHeight().background(color))
-                            }
-                        }
+                        Text(count.toString(), color = color, style = UiTypography.tableCell)
                     }
                 }
             }
