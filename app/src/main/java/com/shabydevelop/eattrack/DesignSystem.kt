@@ -36,6 +36,7 @@ internal object UiSpacing {
     val medium = 12.dp
     val screen = 16.dp
     val compactIcon = 18.dp
+    val tableActionIcon = 16.dp
     val large = 24.dp
     val touch = 48.dp
     val action = touch

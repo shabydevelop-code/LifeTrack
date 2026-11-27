@@ -52,7 +52,14 @@ internal fun HistoryScreen(model: CounterViewModel) {
     }
     val dateFormat = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
     val timeFormat = remember { java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()) }
-    Column(Modifier.fillMaxSize().padding(UiSpacing.screen), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+    val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val measurer = rememberTextMeasurer()
+    val timeWidth = with(LocalDensity.current) {
+        measurer.measure("88:88", style = UiTypography.tableCell).size.width.toDp() + UiSpacing.normal
+    }.coerceAtLeast(UiSpacing.touch)
+    LazyColumn(Modifier.fillMaxSize().lazyScrollIndicator(scrollState), state = scrollState,
+        contentPadding = PaddingValues(UiSpacing.screen)) {
+        item(key = "filters") {
         val filters: @Composable () -> Unit = {
             HistoryFilter("תקופה", listOf(7 to "7 ימים", 30 to "30 ימים", 0 to "הכל"), period) {
                 period = it; pageCount = 1; rows = emptyList(); more = false; loading = true
@@ -64,40 +71,38 @@ internal fun HistoryScreen(model: CounterViewModel) {
             }
         }
         AdaptiveActionPair(filters, types)
-        val measurer = rememberTextMeasurer()
-        val timeWidth = with(LocalDensity.current) {
-            measurer.measure("88:88", style = UiTypography.tableCell).size.width.toDp() + UiSpacing.normal
-        }.coerceAtLeast(UiSpacing.touch)
-        TableFrame(Modifier.weight(1f)) {
-        Row(Modifier.fillMaxWidth().tableHeaderBackground().padding(end = UiSpacing.normal).padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
-            HistoryCells(timeWidth, "שעה", "סוג דיווח", "פרטים", heading = true, modifier = Modifier.weight(1f))
-            Text("פעולות", modifier = Modifier.width(UiSpacing.touch * 2), style = UiTypography.tableHeading, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        }
+        Spacer(Modifier.height(UiSpacing.normal))
         if (model.error) Text("לא ניתן להשלים את הפעולה או לרענן את הנתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-        val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
-        LazyColumn(Modifier.weight(1f).fillMaxWidth().lazyScrollIndicator(scrollState, reserveSpace = false), state = scrollState, verticalArrangement = Arrangement.spacedBy(UiSpacing.tiny)) {
+        }
+        item(key = "table-header") {
+            Row(Modifier.fillMaxWidth().tableSegment(top = true).tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
+                HistoryCells(timeWidth, "שעה", "סוג דיווח", "פרטים", heading = true, modifier = Modifier.weight(1f))
+                Text("פעולות", modifier = Modifier.width(UiSpacing.touch * 2), style = UiTypography.tableHeading, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+            }
+        }
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
+                Column(Modifier.fillMaxWidth().tableSegment()) {
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
-                    Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().tableHeaderBackground().padding(UiSpacing.small).semantics { heading() })
+                    Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().tableHeaderBackground().padding(horizontal = UiSpacing.normal, vertical = UiSpacing.small).semantics { heading() })
                 }
                 val time = timeFormat.format(java.util.Date(event.timestamp))
                 val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
-                Row(Modifier.fillMaxWidth().padding(end = UiSpacing.normal), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 HistoryCells(timeWidth, time, event.type.label, reasons.ifEmpty { "—" },
                     typeColor = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic; EventType.WATER -> UiColors.water },
                     modifier = Modifier.weight(1f).clearAndSetSemantics {
                         contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
                     })
                 IconButton(onClick = { pendingEdit = event }, enabled = !model.busy, modifier = Modifier.size(UiSpacing.touch).semantics { contentDescription = "עריכת דיווח ${event.type.label}, $date, $time" }) {
-                    androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.compactIcon)) {
+                    androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.tableActionIcon)) {
                         val w = UiSpacing.tiny.toPx()
                         fun line(x1: Float, y1: Float, x2: Float, y2: Float) = drawLine(UiColors.primary, androidx.compose.ui.geometry.Offset(size.width*x1,size.height*y1), androidx.compose.ui.geometry.Offset(size.width*x2,size.height*y2), w)
                         line(.15f,.85f,.22f,.55f); line(.22f,.55f,.72f,.05f); line(.72f,.05f,.95f,.28f); line(.95f,.28f,.45f,.78f); line(.45f,.78f,.15f,.85f); line(.62f,.15f,.85f,.38f)
                     }
                 }
                 IconButton(onClick = { pendingDelete = event }, enabled = !model.busy, modifier = Modifier.size(UiSpacing.touch).semantics { contentDescription = "מחיקת דיווח ${event.type.label}, $date, $time" }) {
-                    androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.large)) {
+                    androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.tableActionIcon)) {
                         val c = UiColors.unhealthy
                         val w = UiSpacing.tiny.toPx()
                         fun line(x1: Float, y1: Float, x2: Float, y2: Float) = drawLine(c, androidx.compose.ui.geometry.Offset(size.width*x1,size.height*y1), androidx.compose.ui.geometry.Offset(size.width*x2,size.height*y2), w)
@@ -108,13 +113,14 @@ internal fun HistoryScreen(model: CounterViewModel) {
                 }
                 }
                 HorizontalDivider()
+                }
             }
+            item(key = "table-bottom") { Box(Modifier.fillMaxWidth().height(UiSpacing.tiny).tableSegment(bottom = true)) }
+            item(key = "table-gap") { Spacer(Modifier.height(UiSpacing.normal)) }
             if (loading) item { Text("טוען דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
             if (error) item { Text("לא ניתן לטעון דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }); AppOutlinedButton(onClick = { retry++ }) { Text("נסה שוב") } }
             if (!loading && !error && rows.isEmpty()) item { Text("אין דיווחים בתקופה שנבחרה") }
-            if (more && !loading && !error) item { AppOutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().padding(end = UiSpacing.normal).heightIn(min = UiSpacing.touch)) { Text("טעינת דיווחים נוספים") } }
-        }
-        }
+            if (more && !loading && !error) item { AppOutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) { Text("טעינת דיווחים נוספים") } }
     }
     pendingEdit?.let { event -> EditEventDialog(event, model, { pendingEdit = null }) }
     pendingDelete?.let { event ->

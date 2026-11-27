@@ -1,6 +1,8 @@
 package com.shabydevelop.eattrack
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -39,6 +41,21 @@ internal fun TableFrame(modifier: Modifier = Modifier, content: @Composable Colu
 @Composable
 internal fun Modifier.tableHeaderBackground(): Modifier =
     background(MaterialTheme.colorScheme.surfaceVariant)
+
+// Continuous outline for a table whose rows are individual lazy-list items.
+@Composable
+internal fun Modifier.tableSegment(top: Boolean = false, bottom: Boolean = false): Modifier {
+    val color = MaterialTheme.colorScheme.outlineVariant
+    return drawWithContent {
+        drawContent()
+        val w = 1.dp.toPx()
+        val inset = w / 2
+        drawLine(color, Offset(inset, 0f), Offset(inset, size.height), w)
+        drawLine(color, Offset(size.width - inset, 0f), Offset(size.width - inset, size.height), w)
+        if (top) drawLine(color, Offset(0f, inset), Offset(size.width, inset), w)
+        if (bottom) drawLine(color, Offset(0f, size.height - inset), Offset(size.width, size.height - inset), w)
+    }
+}
 
 @Composable
 internal fun TableHeading(labels: List<String>, weights: List<Float>, colors: List<Color>? = null) {
