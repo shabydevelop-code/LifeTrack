@@ -75,7 +75,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
         }
         if (model.error) Text("לא ניתן להשלים את הפעולה או לרענן את הנתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
-        LazyColumn(Modifier.weight(1f).fillMaxWidth().lazyScrollIndicator(scrollState), state = scrollState, verticalArrangement = Arrangement.spacedBy(UiSpacing.tiny)) {
+        LazyColumn(Modifier.weight(1f).fillMaxWidth().lazyScrollIndicator(scrollState, reserveSpace = false), state = scrollState, verticalArrangement = Arrangement.spacedBy(UiSpacing.tiny)) {
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
@@ -83,7 +83,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
                 }
                 val time = timeFormat.format(java.util.Date(event.timestamp))
                 val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
-                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().padding(end = UiSpacing.normal), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 HistoryCells(timeWidth, time, event.type.label, reasons.ifEmpty { "—" },
                     typeColor = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic; EventType.WATER -> UiColors.water },
                     modifier = Modifier.weight(1f).clearAndSetSemantics {
@@ -98,7 +98,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
                 }
                 IconButton(onClick = { pendingDelete = event }, enabled = !model.busy, modifier = Modifier.size(UiSpacing.touch).semantics { contentDescription = "מחיקת דיווח ${event.type.label}, $date, $time" }) {
                     androidx.compose.foundation.Canvas(Modifier.size(UiSpacing.large)) {
-                        val c = UiColors.primary
+                        val c = UiColors.unhealthy
                         val w = UiSpacing.tiny.toPx()
                         fun line(x1: Float, y1: Float, x2: Float, y2: Float) = drawLine(c, androidx.compose.ui.geometry.Offset(size.width*x1,size.height*y1), androidx.compose.ui.geometry.Offset(size.width*x2,size.height*y2), w)
                         line(.15f,.25f,.85f,.25f); line(.4f,.12f,.6f,.12f)
@@ -112,7 +112,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             if (loading) item { Text("טוען דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
             if (error) item { Text("לא ניתן לטעון דיווחים", Modifier.semantics { liveRegion = LiveRegionMode.Polite }); AppOutlinedButton(onClick = { retry++ }) { Text("נסה שוב") } }
             if (!loading && !error && rows.isEmpty()) item { Text("אין דיווחים בתקופה שנבחרה") }
-            if (more && !loading && !error) item { AppOutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) { Text("טעינת דיווחים נוספים") } }
+            if (more && !loading && !error) item { AppOutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().padding(end = UiSpacing.normal).heightIn(min = UiSpacing.touch)) { Text("טעינת דיווחים נוספים") } }
         }
         }
     }

@@ -184,7 +184,7 @@ internal fun Modifier.visibleVerticalScroll(state: ScrollState): Modifier =
         else state.viewportSize.toFloat() / (state.viewportSize.toFloat() + max) to state.value.toFloat() / max
     }.padding(end = UiSpacing.normal).verticalScroll(state)
 
-internal fun Modifier.lazyScrollIndicator(state: LazyListState): Modifier =
+internal fun Modifier.lazyScrollIndicator(state: LazyListState, reserveSpace: Boolean = true): Modifier =
     scrollIndicator {
         val info = state.layoutInfo
         val total = info.totalItemsCount
@@ -198,7 +198,7 @@ internal fun Modifier.lazyScrollIndicator(state: LazyListState): Modifier =
             val span = (end - start).coerceIn(0.01f, total.toFloat())
             span / total to (start / (total - span).coerceAtLeast(0.01f))
         }
-    }.padding(end = UiSpacing.normal)
+    }.then(if (reserveSpace) Modifier.padding(end = UiSpacing.normal) else Modifier)
 
 @Composable
 internal fun AppOutlinedButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, color: Color = UiColors.primary, content: @Composable RowScope.() -> Unit) {
