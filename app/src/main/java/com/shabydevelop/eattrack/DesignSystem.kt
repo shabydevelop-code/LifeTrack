@@ -40,6 +40,7 @@ internal object UiSpacing {
     val touch = 48.dp
     val action = touch
     val actionHorizontalPadding = medium
+    val pairedActionMinWidth = 340.dp
 }
 
 internal object UiShapes {
@@ -86,7 +87,7 @@ internal fun EatTrackTheme(content: @Composable () -> Unit) {
 @Composable
 internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composable () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        if (maxWidth < 340.dp || LocalDensity.current.fontScale >= 1.3f) {
+        if (maxWidth < UiSpacing.pairedActionMinWidth || LocalDensity.current.fontScale >= 1.3f) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
                 first()
                 second()
@@ -112,7 +113,7 @@ internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap:
                 softWrap = false, maxLines = 1).size.width
             with(density) { textWidth.toDp() } + UiSpacing.actionHorizontalPadding * 2 + UiSpacing.tiny
         }?.coerceAtLeast(UiSpacing.touch) ?: UiSpacing.touch
-        val twoColumns = maxWidth >= requiredCellWidth * 2 + UiSpacing.normal
+        val twoColumns = maxWidth >= maxOf(UiSpacing.pairedActionMinWidth, requiredCellWidth * 2 + UiSpacing.normal)
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(verticalGap)) {
             actions.chunked(if (twoColumns) 2 else 1).forEach { group ->
                 Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min),
