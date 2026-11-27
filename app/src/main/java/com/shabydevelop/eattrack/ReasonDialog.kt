@@ -16,12 +16,6 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
-enum class EatingReason(val label: String) {
-    HUNGER("רעב"), SWEET_CRAVING("חשק למתוק"), BOREDOM("שעמום"), STRESS("לחץ"),
-    FATIGUE("עייפות"), HABIT("הרגל"), TEMPTATION("פיתוי"), SOCIAL("אירוע חברתי"),
-    NO_TIME("חוסר זמן"), EMOTION("מצב רגשי"), OTHER("אחר"), UNKNOWN("לא ברור לי"), GOAL("נזכרתי במטרה שלי"), ALTERNATIVE("בחרתי בחלופה בריאה"), DISTRACTION("הסחתי את דעתי"), DISTANCE("התרחקתי מהפיתוי"), WAITED("המתנתי והחשק חלף"), NOT_HUNGRY("הבנתי שאינני רעב")
-}
-
 @Composable
 internal fun ReasonDialog(model: CounterViewModel) {
     var selected by rememberSaveable { mutableStateOf<String?>(null) }

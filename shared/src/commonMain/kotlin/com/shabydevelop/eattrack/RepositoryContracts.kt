@@ -12,7 +12,7 @@ interface EatingDataSource {
     fun count(type: EventType): Long
 }
 
-internal interface WeightDataSource {
+interface WeightDataSource {
     fun page(days: Int, after: WeightEntry? = null): WeightPage
     fun summary(): WeightSummary?
     fun add(grams: Int)

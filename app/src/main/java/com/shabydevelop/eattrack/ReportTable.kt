@@ -22,15 +22,6 @@ import androidx.compose.ui.unit.dp
 
 internal val reportLabels = listOf("בריאה", "לא בריאה", "ויתור")
 internal val reportColors = listOf(UiColors.healthy, UiColors.unhealthy, UiColors.avoided)
-internal data class PeriodRow(val label: String, val range: String, val counts: List<Long>)
-
-internal fun EatingReport.periodRows(includeToday: Boolean): List<PeriodRow> = listOf(
-    PeriodRow("היום", todayLabel, listOf(healthyToday, today, avoidedToday)),
-    PeriodRow("השבוע", weekLabel, listOf(healthyWeek, week, avoidedWeek)),
-    PeriodRow("החודש", monthLabel, listOf(healthyMonth, month, avoidedMonth)),
-    PeriodRow("מצטבר", totalLabel, listOf(healthyTotal, total, avoidedTotal))
-).let { if (includeToday) it else it.drop(1) }
-
 @Composable
 internal fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell: @Composable (Int) -> Unit) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

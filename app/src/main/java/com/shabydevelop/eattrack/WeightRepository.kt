@@ -3,9 +3,6 @@ package com.shabydevelop.eattrack
 import android.content.Context
 import android.content.ContentValues
 
-internal data class WeightEntry(val id: Long, val timestamp: Long, val grams: Int)
-internal data class WeightPage(val entries: List<WeightEntry>, val hasMore: Boolean)
-internal data class WeightSummary(val latest: Int, val change: Int)
 internal class WeightRepository(context: Context) : AutoCloseable, WeightDataSource {
     private val db = EatingDatabase(context.applicationContext)
     override fun page(days: Int, after: WeightEntry?): WeightPage {

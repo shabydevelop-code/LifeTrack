@@ -12,10 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.input.KeyboardType
 
-data class WaterStats(val count: Long = 0, val milliliters: Long = 0)
-data class WaterDay(val label: String, val stats: WaterStats)
-data class WaterReport(val today: WaterStats = WaterStats(), val week: WaterStats = WaterStats(), val month: WaterStats = WaterStats(), val total: WaterStats = WaterStats(), val days: List<WaterDay> = emptyList())
-
 @Composable
 internal fun WaterAmountField(value: String, change: (String) -> Unit, enabled: Boolean) {
     OutlinedTextField(value = value, onValueChange = { change(it.filter(Char::isDigit)) }, enabled = enabled, singleLine = true,

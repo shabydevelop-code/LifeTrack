@@ -18,9 +18,6 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-data class EatingEvent(val id: Long, val timestamp: Long, val type: EventType, val reasons: List<EatingReason> = emptyList(), val activity: ActivityKind? = null, val minutes: Int = 0, val milliliters: Int = 0)
-data class HistoryPage(val events: List<EatingEvent>, val hasMore: Boolean)
-
 @Composable
 internal fun HistoryScreen(model: CounterViewModel) {
     var period by rememberSaveable { mutableIntStateOf(7) }
