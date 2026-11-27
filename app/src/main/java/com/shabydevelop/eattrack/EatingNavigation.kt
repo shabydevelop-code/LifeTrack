@@ -84,7 +84,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
         Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 AppHeader(
-                    title = when (route) { "reports" -> "דוחות אכילה ופעילות"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; else -> "מעקב אורח חיים" },
+                    title = when (route) { "reports" -> "דוחות"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; else -> "מעקב אורח חיים" },
                     onMenu = { scope.launch { drawer.open() } }
                 )
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
