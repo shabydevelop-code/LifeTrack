@@ -111,20 +111,27 @@ internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap:
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val requiredCellWidth = actions.maxOfOrNull { action ->
-            val textWidth = measurer.measure(action.label, style = UiTypography.primaryAction,
-                softWrap = false, maxLines = 1).size.width
-            with(density) { textWidth.toDp() } + UiSpacing.actionHorizontalPadding * 2 + UiSpacing.tiny
-        }?.coerceAtLeast(UiSpacing.touch) ?: UiSpacing.touch
-        val twoColumns = maxWidth >= maxOf(UiSpacing.pairedActionMinWidth, requiredCellWidth * 2 + UiSpacing.normal)
+        val availableWidth = maxWidth
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(verticalGap)) {
-            actions.chunked(if (twoColumns) 2 else 1).forEach { group ->
-                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                    horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-                    group.forEach { action ->
-                        Box(Modifier.weight(1f).fillMaxHeight(), propagateMinConstraints = true) {
-                            ReportAction(action.label, action.color, action.enabled, action.onClick)
+            actions.chunked(2).forEach { pair ->
+                val requiredCellWidth = pair.maxOf { action ->
+                    val textWidth = measurer.measure(action.label, style = UiTypography.primaryAction,
+                        softWrap = false, maxLines = 1).size.width
+                    with(density) { textWidth.toDp() } + UiSpacing.actionHorizontalPadding * 2 + UiSpacing.tiny
+                }.coerceAtLeast(UiSpacing.touch)
+                val fitsPair = pair.size == 2 && availableWidth >= requiredCellWidth * 2 + UiSpacing.normal
+                if (fitsPair) {
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+                        pair.forEach { action ->
+                            Box(Modifier.weight(1f).fillMaxHeight(), propagateMinConstraints = true) {
+                                ReportAction(action.label, action.color, action.enabled, action.onClick)
+                            }
                         }
+                    }
+                } else {
+                    pair.forEach { action ->
+                        ReportAction(action.label, action.color, action.enabled, action.onClick)
                     }
                 }
             }
