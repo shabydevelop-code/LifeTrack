@@ -27,6 +27,9 @@ internal fun WeightScreen() {
     val context = LocalContext.current.applicationContext
     val scope = rememberCoroutineScope()
     var entries by remember { mutableStateOf<List<WeightEntry>>(emptyList()) }
+    var period by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(7) }
+    var summary by remember { mutableStateOf<WeightSummary?>(null) }
+    var more by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf(false) }
     var input by remember { mutableStateOf("") }
@@ -34,11 +37,18 @@ internal fun WeightScreen() {
     var edit by remember { mutableStateOf<WeightEntry?>(null) }
     var timestamp by remember { mutableLongStateOf(0L) }
     var delete by remember { mutableStateOf<WeightEntry?>(null) }
-    fun refresh(action: (WeightRepository) -> Unit = {}) {
+    fun refresh(append: Boolean = false, action: (WeightRepository) -> Unit = {}) {
         busy = true
         scope.launch {
             try {
-                entries = withContext(Dispatchers.IO) { WeightRepository(context).use { repo -> action(repo); repo.list() } }
+                val cursor = if (append) entries.lastOrNull() else null
+                val selectedPeriod = period
+                val (page, totals) = withContext(Dispatchers.IO) {
+                    WeightRepository(context).use { repo -> action(repo); repo.page(selectedPeriod, cursor) to repo.summary() }
+                }
+                entries = if (append) entries + page.entries else page.entries
+                summary = totals
+                more = page.hasMore
                 error = false
             } catch (e: android.database.SQLException) { error = true }
             finally { busy = false }
@@ -51,18 +61,26 @@ internal fun WeightScreen() {
         item {
             AppOutlinedButton(onClick = { input = ""; edit = null; timestamp = System.currentTimeMillis(); add = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("דיווח משקל חדש") }
         }
-        if (entries.isNotEmpty()) item {
+        summary?.let { totals -> item {
             Spacer(Modifier.height(UiSpacing.normal))
             TableFrame {
-                TableLine(listOf(2f,1f), Modifier.padding(vertical = UiSpacing.normal)) { i -> Text(if (i == 0) "משקל אחרון" else kg(entries.first().grams) + " ק״ג", style = UiTypography.tableCell) }
+                TableLine(listOf(2f,1f), Modifier.padding(vertical = UiSpacing.normal)) { i -> Text(if (i == 0) "משקל אחרון" else kg(totals.latest) + " ק״ג", style = UiTypography.tableCell) }
                 HorizontalDivider()
-                TableLine(listOf(2f,1f), Modifier.padding(vertical = UiSpacing.normal)) { i -> Text(if (i == 0) "שינוי מתחילת המעקב" else kg(entries.first().grams - entries.last().grams) + " ק״ג", style = UiTypography.tableCell) }
+                TableLine(listOf(2f,1f), Modifier.padding(vertical = UiSpacing.normal)) { i -> Text(if (i == 0) "שינוי מתחילת המעקב" else kg(totals.change) + " ק״ג", style = UiTypography.tableCell) }
             }
+        } }
+        item {
+            Spacer(Modifier.height(UiSpacing.normal))
+            SectionHeader("היסטוריית שקילות")
+            Spacer(Modifier.height(UiSpacing.small))
+            HistoryFilter("תקופה", listOf(7 to "7 ימים", 30 to "30 ימים", 0 to "הכל"), period, enabled = !busy) {
+                period = it; entries = emptyList(); more = false; refresh()
+            }
+            Spacer(Modifier.height(UiSpacing.normal))
         }
-        item { Spacer(Modifier.height(UiSpacing.normal)); SectionHeader("היסטוריית שקילות"); Spacer(Modifier.height(UiSpacing.small)) }
         if (error) item { Text("לא ניתן להשלים את הפעולה", color = MaterialTheme.colorScheme.error); Spacer(Modifier.height(UiSpacing.normal)) }
         if (busy) item { CircularProgressIndicator(); Spacer(Modifier.height(UiSpacing.normal)) }
-        if (!busy && entries.isEmpty()) item { Text("אין שקילות") }
+        if (!busy && !error && entries.isEmpty()) item { Text("אין שקילות בתקופה שנבחרה") }
         if (entries.isNotEmpty()) item {
             Row(Modifier.fillMaxWidth().tableSegment(top = true).tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
                 TableLine(listOf(2f,1f), Modifier.weight(1f)) { i -> Text(if (i == 0) "תאריך ושעה" else "ק״ג", style = UiTypography.tableHeading) }
@@ -83,6 +101,13 @@ internal fun WeightScreen() {
                 }
                 if (index != entries.lastIndex) HorizontalDivider()
             }
+        }
+        if (more && !busy && !error) item {
+            Spacer(Modifier.height(UiSpacing.normal))
+            AppOutlinedButton(onClick = { refresh(append = true) }, modifier = Modifier.fillMaxWidth()) { Text("טעינת שקילות נוספות") }
+        }
+        if (error && !busy) item {
+            AppOutlinedButton(onClick = { refresh() }, modifier = Modifier.fillMaxWidth()) { Text("נסה שוב") }
         }
     }
     if (add) {

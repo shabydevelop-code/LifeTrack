@@ -117,10 +117,10 @@ internal fun HistoryScreen(model: CounterViewModel) {
 }
 
 @Composable
-private fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selected: Int, select: (Int) -> Unit) {
+internal fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selected: Int, enabled: Boolean = true, select: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth(), propagateMinConstraints = true) {
-        AppOutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) {
+        AppOutlinedButton(onClick = { expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) {
             Text(label + ": " + options.first { it.first == selected }.second, style = UiTypography.secondaryAction, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
