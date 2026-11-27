@@ -27,33 +27,42 @@ internal class AuthenticationManager(private val activity: FragmentActivity) {
     }
 }
 
+internal class ProtectedSessionViewModel : androidx.lifecycle.ViewModel() {
+    var unlocked by mutableStateOf(false)
+        private set
+    fun unlock() { unlocked = true }
+    fun lock() { unlocked = false }
+    override fun onCleared() { lock() }
+}
+
 @Composable
 internal fun ProtectedArea(content: @Composable () -> Unit) {
     val activity = LocalContext.current as FragmentActivity
     val manager = remember(activity) { AuthenticationManager(activity) }
-    var unlocked by remember { mutableStateOf(false) }
+    val session: ProtectedSessionViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     var pending by remember { mutableStateOf(false) }
     var prompt by remember { mutableStateOf<BiometricPrompt?>(null) }
     var active by remember { mutableStateOf(true) }
     DisposableEffect(activity) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) unlocked = false
+            if (event == Lifecycle.Event.ON_STOP && !activity.isChangingConfigurations) session.lock()
         }
         activity.lifecycle.addObserver(observer)
         onDispose {
             active = false
+            if (!activity.isChangingConfigurations) session.lock()
             activity.lifecycle.removeObserver(observer)
             prompt?.cancelAuthentication()
         }
     }
-    if (unlocked) content() else Column(Modifier.fillMaxSize().padding(UiSpacing.screen),
+    if (session.unlocked) content() else Column(Modifier.fillMaxSize().padding(UiSpacing.screen),
         verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         Text("אזור אישי מוגן", style = UiTypography.sectionTitle)
         Text("יש לאמת את הזהות באמצעות נעילת המכשיר.")
         AppOutlinedButton(onClick = {
             pending = true
             prompt = manager.authenticate { success ->
-                if (active) { pending = false; unlocked = success }
+                if (active) { pending = false; if (success && activity.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) session.unlock() else session.lock() }
             }
         }, enabled = !pending, modifier = Modifier.fillMaxWidth()) { PrivacyIcon(color = LocalContentColor.current, fingerprint = true); Spacer(Modifier.width(UiSpacing.small)); Text("אימות זהות") }
     }
