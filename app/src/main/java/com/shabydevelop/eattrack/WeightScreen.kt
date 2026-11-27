@@ -2,7 +2,12 @@ package com.shabydevelop.eattrack
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.semantics.*
+import java.util.Calendar
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -26,6 +31,8 @@ internal fun WeightScreen() {
     var error by remember { mutableStateOf(false) }
     var input by remember { mutableStateOf("") }
     var add by remember { mutableStateOf(false) }
+    var edit by remember { mutableStateOf<WeightEntry?>(null) }
+    var timestamp by remember { mutableLongStateOf(0L) }
     var delete by remember { mutableStateOf<WeightEntry?>(null) }
     fun refresh(action: (WeightRepository) -> Unit = {}) {
         busy = true
@@ -40,9 +47,9 @@ internal fun WeightScreen() {
     LaunchedEffect(Unit) { refresh() }
     fun kg(grams: Int) = String.format(Locale.getDefault(), "%.1f", grams / 1000.0)
     val state = rememberLazyListState()
-    LazyColumn(Modifier.fillMaxSize().lazyScrollIndicator(state), state = state, contentPadding = PaddingValues(UiSpacing.screen), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+    LazyColumn(Modifier.fillMaxSize().lazyScrollIndicator(state), state = state, contentPadding = PaddingValues(UiSpacing.screen)) {
         item {
-            AppOutlinedButton(onClick = { input = ""; add = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("דיווח משקל חדש") }
+            AppOutlinedButton(onClick = { input = ""; edit = null; timestamp = System.currentTimeMillis(); add = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("דיווח משקל חדש") }
         }
         if (entries.isNotEmpty()) item {
             TableFrame {
@@ -51,27 +58,39 @@ internal fun WeightScreen() {
                 TableLine(listOf(2f,1f), Modifier.padding(vertical = UiSpacing.normal)) { i -> Text(if (i == 0) "שינוי מתחילת המעקב" else kg(entries.first().grams - entries.last().grams) + " ק״ג", style = UiTypography.tableCell) }
             }
         }
-        item { SectionHeader("היסטוריית שקילות") }
+        item { Spacer(Modifier.height(UiSpacing.normal)); SectionHeader("היסטוריית שקילות") }
         if (error) item { Text("לא ניתן להשלים את הפעולה", color = MaterialTheme.colorScheme.error) }
         if (busy) item { CircularProgressIndicator() }
         if (!busy && entries.isEmpty()) item { Text("אין שקילות") }
-        items(entries, key = { it.id }) { entry ->
-            TableFrame {
-                TableLine(listOf(2f,1f,1f)) { i ->
-                    when(i) {
-                        0 -> Text(SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(entry.timestamp)), style = UiTypography.tableCell)
-                        1 -> Text(kg(entry.grams), style = UiTypography.tableCell)
-                        else -> AppTextButton(onClick = { delete = entry }, enabled = !busy, color = UiColors.unhealthy) { Text("מחיקה") }
-                    }
+        if (entries.isNotEmpty()) item {
+            Row(Modifier.fillMaxWidth().tableSegment(top = true).tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
+                TableLine(listOf(2f,1f), Modifier.weight(1f)) { i -> Text(if (i == 0) "תאריך ושעה" else "ק״ג", style = UiTypography.tableHeading) }
+                Text("פעולות", Modifier.width(UiSpacing.touch * 2), style = UiTypography.tableHeading, textAlign = TextAlign.Center)
+            }
+        }
+        itemsIndexed(entries, key = { _, entry -> entry.id }) { index, entry ->
+            Column(Modifier.fillMaxWidth().tableSegment(bottom = index == entries.lastIndex)) {
+                val date = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(entry.timestamp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TableLine(listOf(2f,1f), Modifier.weight(1f)) { i -> Text(if (i == 0) date else kg(entry.grams), style = UiTypography.tableCell) }
+                    TableRowActions("שקילה $date", !busy, {
+                        edit = entry
+                        input = java.math.BigDecimal.valueOf(entry.grams.toLong(), 3).stripTrailingZeros().toPlainString()
+                        timestamp = entry.timestamp
+                        add = true
+                    }, { delete = entry })
                 }
+                if (index != entries.lastIndex) HorizontalDivider()
             }
         }
     }
     if (add) {
         val grams = input.replace(',','.').toBigDecimalOrNull()?.movePointRight(3)?.let { runCatching { it.intValueExact() }.getOrNull() }
-        AlertDialog(onDismissRequest = { add = false }, title = { Text("דיווח משקל חדש") },
-            text = { OutlinedTextField(value = input, onValueChange = { input = it }, label = { Text("משקל בק״ג") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true) },
-            confirmButton = { AppTextButton(onClick = { grams?.let { refresh { repo -> repo.add(it) } }; add = false }, enabled = grams != null && grams > 0 && !busy) { Text("שמירה") } },
+        AlertDialog(onDismissRequest = { add = false }, title = { Text(if (edit == null) "דיווח משקל חדש" else "עריכת שקילה", style = UiTypography.sectionTitle) },
+            text = { Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) { OutlinedTextField(value = input, onValueChange = { input = it }, label = { Text("משקל בק״ג") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
+                if (edit != null) WeightDateTimeFields(timestamp) { timestamp = it }
+            } },
+            confirmButton = { AppTextButton(onClick = { grams?.let { value -> val existing = edit; val time = timestamp; refresh { repo -> if (existing == null) repo.add(value) else repo.update(existing.copy(grams = value, timestamp = time)) } }; add = false }, enabled = grams != null && grams > 0 && timestamp <= System.currentTimeMillis() && !busy) { Text("שמירה") } },
             dismissButton = { AppTextButton(onClick = { add = false }) { Text("ביטול") } })
     }
     delete?.let { entry ->
@@ -79,4 +98,23 @@ internal fun WeightScreen() {
             confirmButton = { AppTextButton(onClick = { delete = null; refresh { it.delete(entry.id) } }, color = UiColors.unhealthy) { Text("מחיקה") } },
             dismissButton = { AppTextButton(onClick = { delete = null }) { Text("ביטול") } })
     }
+}
+
+@Composable
+private fun WeightDateTimeFields(timestamp: Long, change: (Long) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
+    var picker by remember { mutableStateOf<android.app.Dialog?>(null) }
+    DisposableEffect(Unit) { onDispose { picker?.dismiss() } }
+    AppOutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
+        picker = android.app.DatePickerDialog(context, { _, y, m, d ->
+            change(Calendar.getInstance().apply { timeInMillis = timestamp; set(y,m,d) }.timeInMillis)
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply { datePicker.maxDate = System.currentTimeMillis(); show() }
+    }) { Text("תאריך: " + SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(timestamp))) }
+    AppOutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
+        picker = android.app.TimePickerDialog(context, { _, h, m ->
+            change(Calendar.getInstance().apply { timeInMillis = timestamp; set(Calendar.HOUR_OF_DAY,h); set(Calendar.MINUTE,m); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0) }.timeInMillis)
+        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).apply { show() }
+    }) { Text("שעה: " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))) }
+    if (timestamp > System.currentTimeMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
 }

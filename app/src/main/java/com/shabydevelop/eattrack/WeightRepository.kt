@@ -15,6 +15,12 @@ internal class WeightRepository(context: Context) : AutoCloseable {
             put("created_at",System.currentTimeMillis()); put("grams",grams)
         })
     }
+    fun update(entry: WeightEntry) {
+        require(entry.grams > 0 && entry.timestamp <= System.currentTimeMillis())
+        val values = ContentValues().apply { put("grams", entry.grams); put("created_at", entry.timestamp) }
+        if (db.writableDatabase.update("weight_entries", values, "id = ?", arrayOf(entry.id.toString())) != 1)
+            throw android.database.SQLException("Weight entry not found")
+    }
     fun delete(id: Long) { db.writableDatabase.delete("weight_entries","id = ?",arrayOf(id.toString())) }
     override fun close() = db.close()
 }
