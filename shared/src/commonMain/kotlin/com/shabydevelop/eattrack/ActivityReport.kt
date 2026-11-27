@@ -74,7 +74,7 @@ fun ActivityChart(days: List<ActivityDay>) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("פעילות אירובית – 7 ימים", UiColors.aerobic)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(listOf("תאריך", "משך הפעילות", "דקות"), weights, listOf(MaterialTheme.colorScheme.onSurfaceVariant, UiColors.aerobic, UiColors.aerobic))
+            TableHeading(listOf("תאריך", "משך הפעילות", "דקות"), weights)
             days.forEach { day ->
                 HorizontalDivider()
                 TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
