@@ -62,10 +62,7 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         ReportAction("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true }
         Spacer(Modifier.height(UiSpacing.small))
         HorizontalDivider()
-        SectionHeader("סיכום אכילה")
-        PeriodTable(report.periodRows(true), false)
-        WaterSummary(report.water)
-        ActivitySummary(report.activity)
+        DailySummary(report)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
     }
     }

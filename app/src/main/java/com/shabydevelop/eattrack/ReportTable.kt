@@ -56,3 +56,30 @@ internal fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
         }
     }
 }
+
+private data class DailySummaryRow(val label: String, val value: String, val color: Color)
+
+@Composable
+internal fun DailySummary(report: EatingReport) {
+    val rows = listOf(
+        DailySummaryRow("אכילה בריאה", report.healthyToday.toString(), UiColors.healthy),
+        DailySummaryRow("אכילה לא בריאה", report.today.toString(), UiColors.unhealthy),
+        DailySummaryRow("ויתור על פיתוי", report.avoidedToday.toString(), UiColors.avoided),
+        DailySummaryRow("שתיית מים", "${report.water.today.milliliters} מ״ל", UiColors.water),
+        DailySummaryRow("פעילות אירובית", "${report.activity.today.minutes} דק׳", UiColors.aerobic)
+    )
+    val weights = listOf(2f, 1f)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
+        SectionHeader("סיכום יומי")
+        OutlinedCard(Modifier.fillMaxWidth()) {
+            rows.forEachIndexed { index, row ->
+                if (index > 0) HorizontalDivider()
+                TableLine(weights, Modifier.padding(vertical = UiSpacing.normal, horizontal = UiSpacing.normal)
+                    .clearAndSetSemantics { contentDescription = "${row.label}: ${row.value}" }) { i ->
+                    if (i == 0) Text(row.label, color = row.color, style = UiTypography.tableCell)
+                    else Text(row.value, style = UiTypography.tableCell, textAlign = TextAlign.Center)
+                }
+            }
+        }
+    }
+}
