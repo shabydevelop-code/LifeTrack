@@ -48,6 +48,7 @@ internal object UiColors {
     val primary = Color(0xFF1E4064)
     val healthy = Color(0xFF166534)
     val unhealthy = Color(0xFFB91C1C)
+    val water = Color(0xFF0E7490)
     val aerobic = Color(0xFF7C3AED)
     val avoided = Color(0xFF1D4ED8)
 }

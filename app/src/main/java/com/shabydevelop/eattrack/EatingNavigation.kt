@@ -88,7 +88,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
                     onMenu = { scope.launch { drawer.open() } }
                 )
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
-                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model.busy) }
+                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model::addWater, model.busy) }
                     composable("reports") { ReportsScreen(model.report, model.error) }
                     composable("history") { HistoryScreen(model) }
                     composable("settings") { SettingsScreen(model) }

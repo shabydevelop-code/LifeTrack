@@ -26,10 +26,11 @@ internal fun EditEventDialog(event: EatingEvent, model: CounterViewModel, dismis
     var reasons by remember(event.id) { mutableStateOf(event.reasons.toSet()) }
     var activity by remember(event.id) { mutableStateOf(event.activity ?: ActivityKind.WALK) }
     var minutes by remember(event.id) { mutableStateOf(if (event.minutes > 0) event.minutes.toString() else "30") }
+    var water by remember(event.id) { mutableStateOf(if (event.milliliters > 0) event.milliliters.toString() else "250") }
     var failed by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-    val valid = timestamp <= System.currentTimeMillis() && (type != EventType.AEROBIC || (minutes.toIntOrNull() ?: 0) > 0)
+    val valid = timestamp <= System.currentTimeMillis() && (type != EventType.AEROBIC || (minutes.toIntOrNull() ?: 0) > 0) && (type != EventType.WATER || (water.toIntOrNull() ?: 0) > 0)
     AlertDialog(onDismissRequest = { if (!model.busy) dismiss() },
         title = { Text("עריכת דיווח", style = UiTypography.sectionTitle) },
         text = {
@@ -50,7 +51,7 @@ internal fun EditEventDialog(event: EatingEvent, model: CounterViewModel, dismis
                 Column(Modifier.selectableGroup()) {
                     EventType.entries.forEach { option ->
                         EditChoice(option.label, type == option, !model.busy) {
-                            if (type != option) { type = option; reasons = emptySet(); activity = ActivityKind.WALK; minutes = "30" }
+                            if (type != option) { type = option; reasons = emptySet(); activity = ActivityKind.WALK; minutes = "30"; water = "250" }
                         }
                     }
                 }
@@ -72,13 +73,14 @@ internal fun EditEventDialog(event: EatingEvent, model: CounterViewModel, dismis
                         label = { Text("משך הפעילות בדקות") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = (minutes.toIntOrNull() ?: 0) <= 0, modifier = Modifier.fillMaxWidth())
                 }
+                if (type == EventType.WATER) WaterAmountField(water, { water = it }, !model.busy)
                 if (timestamp > System.currentTimeMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
                 if (failed) Text("לא ניתן לשמור את הדיווח. ניתן לנסות שוב.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             }
         },
         confirmButton = { AppTextButton(enabled = valid && !model.busy, onClick = {
             failed = false
-            model.updateEvent(event.copy(timestamp = timestamp, type = type, reasons = reasons.toList(), activity = if (type == EventType.AEROBIC) activity else null, minutes = if (type == EventType.AEROBIC) minutes.toInt() else 0)) { ok -> if (ok) dismiss() else failed = true }
+            model.updateEvent(event.copy(timestamp = timestamp, type = type, reasons = reasons.toList(), activity = if (type == EventType.AEROBIC) activity else null, minutes = if (type == EventType.AEROBIC) minutes.toInt() else 0, milliliters = if (type == EventType.WATER) water.toInt() else 0)) { ok -> if (ok) dismiss() else failed = true }
         }) { Text("שמירה", style = UiTypography.secondaryAction) } },
         dismissButton = { AppTextButton(enabled = !model.busy, onClick = dismiss) { Text("ביטול", style = UiTypography.secondaryAction) } })
 }

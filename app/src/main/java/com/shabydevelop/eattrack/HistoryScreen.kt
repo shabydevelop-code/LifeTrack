@@ -18,7 +18,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-data class EatingEvent(val id: Long, val timestamp: Long, val type: EventType, val reasons: List<EatingReason> = emptyList(), val activity: ActivityKind? = null, val minutes: Int = 0)
+data class EatingEvent(val id: Long, val timestamp: Long, val type: EventType, val reasons: List<EatingReason> = emptyList(), val activity: ActivityKind? = null, val minutes: Int = 0, val milliliters: Int = 0)
 data class HistoryPage(val events: List<EatingEvent>, val hasMore: Boolean)
 
 @Composable
@@ -35,7 +35,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
     var pendingDelete by remember { mutableStateOf<EatingEvent?>(null) }
     var loadedSequence by remember { mutableLongStateOf(model.successSequence) }
     val days = period.takeIf { it > 0 }
-    val eventType = when (type) { 1 -> EventType.HEALTHY; 2 -> EventType.UNHEALTHY; 3 -> EventType.AVOIDED; 4 -> EventType.AEROBIC; else -> null }
+    val eventType = when (type) { 1 -> EventType.HEALTHY; 2 -> EventType.UNHEALTHY; 3 -> EventType.AVOIDED; 4 -> EventType.AEROBIC; 5 -> EventType.WATER; else -> null }
     LaunchedEffect(period, type, model.successSequence, pageCount, retry) {
         if (loadedSequence != model.successSequence) {
             loadedSequence = model.successSequence
@@ -59,7 +59,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             }
         }
         val types: @Composable () -> Unit = {
-            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "בריאה", 2 to "לא בריאה", 3 to "ויתור", 4 to "אירובית"), type) {
+            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "בריאה", 2 to "לא בריאה", 3 to "ויתור", 4 to "אירובית", 5 to "מים"), type) {
                 type = it; pageCount = 1; rows = emptyList(); more = false; loading = true
             }
         }
@@ -81,10 +81,10 @@ internal fun HistoryScreen(model: CounterViewModel) {
                     Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(UiSpacing.small).semantics { heading() })
                 }
                 val time = timeFormat.format(java.util.Date(event.timestamp))
-                val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else event.reasons.joinToString(" · ") { it.label }
+                val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 HistoryCells(timeWidth, time, event.type.label, reasons.ifEmpty { "—" },
-                    typeColor = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic },
+                    typeColor = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic; EventType.WATER -> UiColors.water },
                     modifier = Modifier.weight(1f).clearAndSetSemantics {
                         contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
                     })

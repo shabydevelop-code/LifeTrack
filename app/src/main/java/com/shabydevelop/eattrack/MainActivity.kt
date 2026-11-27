@@ -41,9 +41,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, addActivity: (ActivityKind, Int) -> Unit, busy: Boolean) {
+internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, addActivity: (ActivityKind, Int) -> Unit, addWater: (Int) -> Unit, busy: Boolean) {
     var activityDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (activityDialog) ActivityDialog(busy, { activityDialog = false }, { kind, minutes -> activityDialog = false; addActivity(kind, minutes) })
+    var waterDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    if (waterDialog) WaterDialog(busy, { waterDialog = false }, { amount -> waterDialog = false; addWater(amount) })
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val gap = (maxHeight * 0.014f).coerceIn(UiSpacing.compact, UiSpacing.medium)
     Column(
@@ -57,14 +59,18 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
             CompactSummary("לא בריאה", report.today, Modifier.weight(1f).fillMaxHeight())
             CompactSummary("ויתור", report.avoidedToday, Modifier.weight(1f).fillMaxHeight())
         }
-        ReportAction("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) }
-        ReportAction("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) }
-        ReportAction("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) }
+        AdaptiveActionPair(
+            { ReportAction("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) } },
+            { ReportAction("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) } })
+        AdaptiveActionPair(
+            { ReportAction("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) } },
+            { ReportAction("שתיית מים", UiColors.water, !busy) { waterDialog = true } })
         ReportAction("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true }
         Spacer(Modifier.height(UiSpacing.small))
         HorizontalDivider()
         SectionHeader("סיכום אכילה מצטבר")
         PeriodTable(report.periodRows(false), false)
+        WaterSummary(report.water)
         ActivitySummary(report.activity)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
     }
