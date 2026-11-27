@@ -53,6 +53,7 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap)
     ) {
+        HomeBanner(availableHeight = maxHeight)
         AdaptiveReportActions(listOf(
             ReportActionSpec("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) },
             ReportActionSpec("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) },
