@@ -69,9 +69,9 @@ fun Modifier.tableSegment(top: Boolean = false, bottom: Boolean = false): Modifi
 }
 
 @Composable
-fun TableHeading(labels: List<String>, weights: List<Float>, colors: List<Color>? = null) {
+fun TableHeading(labels: List<String>, weights: List<Float>) {
     TableLine(weights, Modifier.tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }) { i ->
-        Text(labels[i], style = UiTypography.tableHeading, color = colors?.getOrNull(i) ?: MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
+        Text(labels[i], style = UiTypography.tableHeading, color = Color.Black, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
     }
 }
 
@@ -84,7 +84,7 @@ fun MetricValue(value: String, color: Color, modifier: Modifier = Modifier) {
 fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
     val weights = if (showRanges) listOf(1.5f, 1f, 1.15f, 1f) else listOf(1f, 1f, 1.15f, 1f)
     TableFrame {
-        TableHeading(listOf("תקופה") + reportLabels, weights, listOf(MaterialTheme.colorScheme.onSurfaceVariant) + reportColors)
+        TableHeading(listOf("תקופה") + reportLabels, weights)
         rows.forEach { row ->
             HorizontalDivider()
             TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
