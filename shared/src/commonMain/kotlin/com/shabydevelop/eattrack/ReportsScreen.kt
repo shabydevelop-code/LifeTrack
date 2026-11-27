@@ -31,8 +31,7 @@ private fun EatingChart(days: List<DayCount>) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("דפוסי אכילה – 7 ימים")
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(listOf("תאריך") + reportLabels, weights,
-                listOf(MaterialTheme.colorScheme.onSurfaceVariant) + reportColors)
+            TableHeading(listOf("תאריך") + reportLabels, weights)
             days.forEach { day ->
                 val counts = listOf(day.healthy, day.count, day.avoided)
                 HorizontalDivider()
