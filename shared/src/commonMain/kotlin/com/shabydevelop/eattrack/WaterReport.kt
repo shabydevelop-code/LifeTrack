@@ -62,7 +62,7 @@ fun WaterChart(days: List<WaterDay>) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("שתיית מים – 7 ימים", UiColors.water)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(listOf("תאריך", "כמות השתייה", "מ״ל"), weights, listOf(MaterialTheme.colorScheme.onSurfaceVariant, UiColors.water, UiColors.water))
+            TableHeading(listOf("תאריך", "כמות השתייה", "מ״ל"), weights)
             days.forEach { day ->
                 HorizontalDivider()
                 TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
