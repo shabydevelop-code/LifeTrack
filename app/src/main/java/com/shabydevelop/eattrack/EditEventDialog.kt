@@ -1,7 +1,5 @@
 package com.shabydevelop.eattrack
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -11,13 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.input.KeyboardType
-import java.util.Calendar
-import java.util.Date
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @Composable
 internal fun EditEventDialog(event: EatingEvent, model: CounterViewModel, dismiss: () -> Unit) {
@@ -28,25 +21,12 @@ internal fun EditEventDialog(event: EatingEvent, model: CounterViewModel, dismis
     var minutes by remember(event.id) { mutableStateOf(if (event.minutes > 0) event.minutes.toString() else "30") }
     var water by remember(event.id) { mutableStateOf(if (event.milliliters > 0) event.milliliters.toString() else "250") }
     var failed by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
     val valid = timestamp <= PlatformClock.nowMillis() && (type != EventType.AEROBIC || (minutes.toIntOrNull() ?: 0) > 0) && (type != EventType.WATER || (water.toIntOrNull() ?: 0) > 0)
     AlertDialog(onDismissRequest = { if (!model.busy) dismiss() },
         title = { Text("עריכת דיווח", style = UiTypography.sectionTitle) },
         text = {
             Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
-                AppOutlinedButton(enabled = !model.busy, modifier = Modifier.fillMaxWidth(), onClick = {
-                    DatePickerDialog(context, { _, y, m, d ->
-                        timestamp = Calendar.getInstance().apply { timeInMillis = timestamp; set(y,m,d) }.timeInMillis
-                    }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply {
-                        datePicker.maxDate = PlatformClock.nowMillis()
-                    }.show()
-                }) { Text("תאריך: " + SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(timestamp))) }
-                AppOutlinedButton(enabled = !model.busy, modifier = Modifier.fillMaxWidth(), onClick = {
-                    TimePickerDialog(context, { _, h, m ->
-                        timestamp = Calendar.getInstance().apply { timeInMillis = timestamp; set(Calendar.HOUR_OF_DAY,h); set(Calendar.MINUTE,m); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0) }.timeInMillis
-                    }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
-                }) { Text("שעה: " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))) }
+                DateTimeFields(timestamp, enabled = !model.busy) { timestamp = it }
                 Text("סוג הדיווח", style = UiTypography.tableHeading)
                 Column(Modifier.selectableGroup()) {
                     EventType.entries.forEach { option ->

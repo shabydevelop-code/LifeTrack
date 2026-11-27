@@ -21,6 +21,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
 
 class MainActivity : androidx.fragment.app.FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +33,9 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         setContent {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 EatTrackTheme {
-                    val model: CounterViewModel = viewModel()
+                    val model: CounterViewModel = viewModel(factory = androidx.lifecycle.viewmodel.viewModelFactory {
+                        initializer { CounterViewModel(EatingRepository(application)) }
+                    })
                     EatingNavigation(model)
                 }
             }

@@ -1,8 +1,7 @@
 package com.shabydevelop.eattrack
 
-import android.app.Application
 import androidx.compose.runtime.*
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -10,8 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class CounterViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: EatingDataSource = EatingRepository(application)
+class CounterViewModel(private val repository: EatingDataSource) : ViewModel()
     private val mutex = Mutex()
     var report by mutableStateOf(EatingReport())
         private set
@@ -55,12 +53,12 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         reasonError = false
         viewModelScope.launch {
             try {
-                mutex.withLock { withContext(Dispatchers.IO) { repository.saveReasons(id, reasons, pendingReasonType) } }
+                mutex.withLock { withContext(Dispatchers.IO) { databaseOperation { repository.saveReasons(id, reasons, pendingReasonType) } } }
                 feedbackType = pendingReasonType
                 closeReasons()
                 feedback = "הסיבות נשמרו"
                 successSequence++
-            } catch (e: android.database.SQLException) { reasonError = true }
+            } catch (e: RepositoryFailure) { reasonError = true }
             finally { busy = false }
         }
     }
@@ -97,22 +95,22 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 mutex.withLock {
-                    withContext(Dispatchers.IO) { repository.updateEvent(event) }
+                    withContext(Dispatchers.IO) { databaseOperation { repository.updateEvent(event) } }
                     feedbackType = event.type
                     feedback = "הדיווח עודכן"
                     successSequence++
                     try {
-                        report = withContext(Dispatchers.IO) { repository.report() }
+                        report = withContext(Dispatchers.IO) { databaseOperation { repository.report() } }
                         error = false
-                    } catch (e: android.database.SQLException) { error = true }
+                    } catch (e: RepositoryFailure) { error = true }
                 }
                 completed(true)
-            } catch (e: android.database.SQLException) { completed(false) }
+            } catch (e: RepositoryFailure) { completed(false) }
             finally { busy = false }
         }
     }
     fun deleteEvent(id: Long) = mutate {
-        if (!repository.deleteEvent(id)) throw android.database.SQLException("Report not found")
+        if (!repository.deleteEvent(id)) throw RepositoryFailure("Report not found")
         "הדיווח נמחק"
     }
     fun undo() = mutate {
@@ -121,7 +119,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     fun reset() = mutate { repository.reset(); "ההיסטוריה נמחקה" }
 
     suspend fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage =
-        withContext(Dispatchers.IO) { repository.historyPage(days, type, before) }
+        withContext(Dispatchers.IO) { databaseOperation { repository.historyPage(days, type, before) } }
 
     private fun mutate(type: EventType? = null, action: suspend () -> String) {
         if (busy) return
@@ -130,14 +128,14 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 mutex.withLock {
-                    val message = withContext(Dispatchers.IO) { action() }
+                    val message = withContext(Dispatchers.IO) { databaseOperation { action() } }
                     feedbackType = type
                     feedback = message
                     successSequence++
-                    report = withContext(Dispatchers.IO) { repository.report() }
+                    report = withContext(Dispatchers.IO) { databaseOperation { repository.report() } }
                     error = false
                 }
-            } catch (e: android.database.SQLException) {
+            } catch (e: RepositoryFailure) {
                 error = true
                 failureSequence++
             } finally {
@@ -150,9 +148,9 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             mutex.withLock {
                 try {
-                    report = withContext(Dispatchers.IO) { repository.report() }
+                    report = withContext(Dispatchers.IO) { databaseOperation { repository.report() } }
                     error = false
-                } catch (e: android.database.SQLException) {
+                } catch (e: RepositoryFailure) {
                     error = true
                 }
             }

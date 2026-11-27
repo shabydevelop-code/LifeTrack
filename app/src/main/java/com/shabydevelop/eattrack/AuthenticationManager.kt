@@ -39,19 +39,17 @@ internal class ProtectedSessionViewModel : androidx.lifecycle.ViewModel() {
 internal fun ProtectedArea(content: @Composable () -> Unit) {
     val activity = LocalContext.current as FragmentActivity
     val manager = remember(activity) { AuthenticationManager(activity) }
+    val lifecycle = remember(activity) { PlatformLifecycle(activity) }
     val session: ProtectedSessionViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     var pending by remember { mutableStateOf(false) }
     var prompt by remember { mutableStateOf<AuthenticationRequest?>(null) }
     var active by remember { mutableStateOf(true) }
     DisposableEffect(activity) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP && !activity.isChangingConfigurations) session.lock()
-        }
-        activity.lifecycle.addObserver(observer)
+        val removeObserver = lifecycle.observeStop { session.lock() }
         onDispose {
             active = false
-            if (!activity.isChangingConfigurations) session.lock()
-            activity.lifecycle.removeObserver(observer)
+            if (!lifecycle.isChangingConfiguration) session.lock()
+            removeObserver()
             prompt?.cancel()
         }
     }
@@ -62,7 +60,7 @@ internal fun ProtectedArea(content: @Composable () -> Unit) {
         AppOutlinedButton(onClick = {
             pending = true
             prompt = manager.authenticate { success ->
-                if (active) { pending = false; if (success && activity.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) session.unlock() else session.lock() }
+                if (active) { pending = false; if (success && lifecycle.isStarted) session.unlock() else session.lock() }
             }
         }, enabled = !pending, modifier = Modifier.fillMaxWidth()) { PrivacyIcon(color = LocalContentColor.current, fingerprint = true); Spacer(Modifier.width(UiSpacing.small)); Text("אימות זהות") }
     }

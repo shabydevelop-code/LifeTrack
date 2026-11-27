@@ -7,7 +7,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.semantics.*
-import java.util.Calendar
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -18,8 +17,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -44,13 +41,13 @@ internal fun WeightScreen() {
                 val cursor = if (append) entries.lastOrNull() else null
                 val selectedPeriod = period
                 val (page, totals) = withContext(Dispatchers.IO) {
-                    WeightRepository(context).use { repo -> action(repo); repo.page(selectedPeriod, cursor) to repo.summary() }
+                    databaseOperation { WeightRepository(context).use { repo -> action(repo); repo.page(selectedPeriod, cursor) to repo.summary() } }
                 }
                 entries = if (append) entries + page.entries else page.entries
                 summary = totals
                 more = page.hasMore
                 error = false
-            } catch (e: android.database.SQLException) { error = true }
+            } catch (e: RepositoryFailure) { error = true }
             finally { busy = false }
         }
     }
@@ -89,7 +86,7 @@ internal fun WeightScreen() {
         }
         itemsIndexed(entries, key = { _, entry -> entry.id }) { index, entry ->
             Column(Modifier.fillMaxWidth().tableSegment(bottom = index == entries.lastIndex)) {
-                val date = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(entry.timestamp))
+                val date = PlatformDateTime.dateTime(entry.timestamp)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TableLine(listOf(2f,1f), Modifier.weight(1f)) { i -> Text(if (i == 0) date else kg(entry.grams), style = UiTypography.tableCell) }
                     TableRowActions("שקילה $date", !busy, {
@@ -114,7 +111,8 @@ internal fun WeightScreen() {
         val grams = input.replace(',','.').toBigDecimalOrNull()?.movePointRight(3)?.let { runCatching { it.intValueExact() }.getOrNull() }
         AlertDialog(onDismissRequest = { add = false }, title = { Text(if (edit == null) "דיווח משקל חדש" else "עריכת שקילה", style = UiTypography.sectionTitle) },
             text = { Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) { OutlinedTextField(value = input, onValueChange = { input = it }, label = { Text("משקל בק״ג") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
-                if (edit != null) WeightDateTimeFields(timestamp) { timestamp = it }
+                if (edit != null) DateTimeFields(timestamp) { timestamp = it }
+                if (edit != null && timestamp > PlatformClock.nowMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
             } },
             confirmButton = { AppTextButton(onClick = { grams?.let { value -> val existing = edit; val time = timestamp; refresh { repo -> if (existing == null) repo.add(value) else repo.update(existing.copy(grams = value, timestamp = time)) } }; add = false }, enabled = grams != null && grams > 0 && timestamp <= PlatformClock.nowMillis() && !busy) { Text("שמירה") } },
             dismissButton = { AppTextButton(onClick = { add = false }) { Text("ביטול") } })
@@ -126,21 +124,3 @@ internal fun WeightScreen() {
     }
 }
 
-@Composable
-private fun WeightDateTimeFields(timestamp: Long, change: (Long) -> Unit) {
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-    var picker by remember { mutableStateOf<android.app.Dialog?>(null) }
-    DisposableEffect(Unit) { onDispose { picker?.dismiss() } }
-    AppOutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
-        picker = android.app.DatePickerDialog(context, { _, y, m, d ->
-            change(Calendar.getInstance().apply { timeInMillis = timestamp; set(y,m,d) }.timeInMillis)
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply { datePicker.maxDate = PlatformClock.nowMillis(); show() }
-    }) { Text("תאריך: " + SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(timestamp))) }
-    AppOutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
-        picker = android.app.TimePickerDialog(context, { _, h, m ->
-            change(Calendar.getInstance().apply { timeInMillis = timestamp; set(Calendar.HOUR_OF_DAY,h); set(Calendar.MINUTE,m); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0) }.timeInMillis)
-        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).apply { show() }
-    }) { Text("שעה: " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))) }
-    if (timestamp > PlatformClock.nowMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
-}

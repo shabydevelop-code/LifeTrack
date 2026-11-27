@@ -47,11 +47,9 @@ internal fun HistoryScreen(model: CounterViewModel) {
             val page = model.historyPage(days, eventType, if (pageCount == 1) null else rows.lastOrNull())
             rows = if (pageCount == 1) page.events else rows + page.events
             more = page.hasMore
-        } catch (e: android.database.SQLException) { error = true }
+        } catch (e: RepositoryFailure) { error = true }
         finally { loading = false }
     }
-    val dateFormat = remember { java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
-    val timeFormat = remember { java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()) }
     val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
     val measurer = rememberTextMeasurer()
     val timeWidth = with(LocalDensity.current) {
@@ -82,11 +80,11 @@ internal fun HistoryScreen(model: CounterViewModel) {
         }
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 Column(Modifier.fillMaxWidth().tableSegment(bottom = index == rows.lastIndex)) {
-                val date = dateFormat.format(java.util.Date(event.timestamp))
-                if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
+                val date = PlatformDateTime.date(event.timestamp)
+                if (index == 0 || date != PlatformDateTime.date(rows[index - 1].timestamp)) {
                     Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().tableHeaderBackground().padding(horizontal = UiSpacing.normal, vertical = UiSpacing.small).semantics { heading() })
                 }
-                val time = timeFormat.format(java.util.Date(event.timestamp))
+                val time = PlatformDateTime.time(event.timestamp)
                 val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 HistoryCells(timeWidth, time, event.type.label, reasons.ifEmpty { "—" },
@@ -110,7 +108,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
     pendingDelete?.let { event ->
         AlertDialog(onDismissRequest = { pendingDelete = null },
             title = { Text("מחיקת דיווח", style = UiTypography.sectionTitle) },
-            text = { Text("${event.type.label}\n${dateFormat.format(java.util.Date(event.timestamp))} · ${timeFormat.format(java.util.Date(event.timestamp))}\nהדיווח יימחק לצמיתות. להמשיך?", style = UiTypography.body) },
+            text = { Text("${event.type.label}\n${PlatformDateTime.date(event.timestamp)} · ${PlatformDateTime.time(event.timestamp)}\nהדיווח יימחק לצמיתות. להמשיך?", style = UiTypography.body) },
             confirmButton = { AppTextButton(color = UiColors.unhealthy, enabled = !model.busy, onClick = { pendingDelete = null; model.deleteEvent(event.id) }) { Text("מחיקה", style = UiTypography.secondaryAction) } },
             dismissButton = { AppTextButton(onClick = { pendingDelete = null }) { Text("ביטול", style = UiTypography.secondaryAction) } })
     }

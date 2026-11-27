@@ -100,12 +100,8 @@ class EatingRepository(context: Context) : EatingDataSource {
         val clauses = mutableListOf<String>()
         val args = mutableListOf<String>()
         if (days != null) {
-            val start = java.util.Calendar.getInstance().apply {
-                set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
-                set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
-                add(java.util.Calendar.DAY_OF_YEAR, 1 - days)
-            }
-            clauses.add("created_at >= ?"); args.add(start.timeInMillis.toString())
+            val start = PlatformDateTime.startOfDays(days)
+            clauses.add("created_at >= ?"); args.add(start.toString())
         }
         if (type != null) { clauses.add("event_type = ?"); args.add(type.name) }
         if (before != null) {

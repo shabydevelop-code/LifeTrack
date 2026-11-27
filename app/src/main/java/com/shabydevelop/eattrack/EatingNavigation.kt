@@ -58,14 +58,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
             delay(60000L - now % 60000L)
         }
     }
-    DisposableEffect(context) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) model.reload()
-        }
-        val owner = context as androidx.activity.ComponentActivity
-        owner.lifecycle.addObserver(observer)
-        onDispose { owner.lifecycle.removeObserver(observer) }
-    }
+    OnPlatformResume(context as androidx.activity.ComponentActivity) { model.reload() }
     model.pendingReasonId?.let { id -> key(id) { ReasonDialog(model) } }
     ModalNavigationDrawer(
         modifier = Modifier.fillMaxSize().background(UiColors.primary)
