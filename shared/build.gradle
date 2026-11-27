@@ -11,7 +11,10 @@ kotlin {
         commonMain.dependencies {
             api 'androidx.lifecycle:lifecycle-viewmodel:2.8.7'
             implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0'
-            implementation 'org.jetbrains.compose.runtime:runtime:1.7.3'
+            api 'org.jetbrains.compose.runtime:runtime:1.7.3'
+            api 'org.jetbrains.compose.ui:ui:1.7.3'
+            api 'org.jetbrains.compose.foundation:foundation:1.7.3'
+            api 'org.jetbrains.compose.material3:material3:1.7.3'
         }
         commonTest.dependencies { implementation kotlin('test') }
         androidUnitTest.dependencies { implementation 'junit:junit:4.13.2' }

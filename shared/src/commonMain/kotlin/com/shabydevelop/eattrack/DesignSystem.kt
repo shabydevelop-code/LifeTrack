@@ -27,7 +27,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 
-internal object UiSpacing {
+object UiSpacing {
     val tiny = 2.dp
     val cell = 3.dp
     val small = 4.dp
@@ -46,11 +46,11 @@ internal object UiSpacing {
     val homeBannerMaxHeight = 120.dp
 }
 
-internal object UiShapes {
+object UiShapes {
     val control = RoundedCornerShape(8.dp)
 }
 
-internal object UiColors {
+object UiColors {
     val primary = Color(0xFF1E4064)
     val healthy = Color(0xFF166534)
     val unhealthy = Color(0xFFB91C1C)
@@ -59,7 +59,7 @@ internal object UiColors {
     val avoided = Color(0xFF1D4ED8)
 }
 
-internal object UiTypography {
+object UiTypography {
     private fun style(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) =
         TextStyle(fontFamily = FontFamily.SansSerif, fontSize = size.sp, lineHeight = line.sp, fontWeight = weight)
 
@@ -82,13 +82,13 @@ internal object UiTypography {
 }
 
 @Composable
-internal fun EatTrackTheme(content: @Composable () -> Unit) {
+fun EatTrackTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = lightColorScheme(primary = UiColors.primary), typography = UiTypography.material, content = content)
 }
 
 // Generic paired controls (including non-button controls such as history filters).
 @Composable
-internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composable () -> Unit) {
+fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composable () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         if (maxWidth < UiSpacing.pairedActionMinWidth || LocalDensity.current.fontScale >= 1.3f) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
@@ -104,10 +104,10 @@ internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composab
     }
 }
 
-internal data class ReportActionSpec(val label: String, val color: Color, val enabled: Boolean, val protected: Boolean = false, val onClick: () -> Unit)
+data class ReportActionSpec(val label: String, val color: Color, val enabled: Boolean, val protected: Boolean = false, val onClick: () -> Unit)
 
 @Composable
-internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap: androidx.compose.ui.unit.Dp = UiSpacing.normal) {
+fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap: androidx.compose.ui.unit.Dp = UiSpacing.normal) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -140,7 +140,7 @@ internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap:
 }
 
 @Composable
-internal fun ReportAction(label: String, color: Color, enabled: Boolean, protected: Boolean = false, onClick: () -> Unit) {
+fun ReportAction(label: String, color: Color, enabled: Boolean, protected: Boolean = false, onClick: () -> Unit) {
     AppOutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth(), color = color) {
         if (protected) { PrivacyIcon(color = LocalContentColor.current); Spacer(Modifier.width(UiSpacing.small)) }
         Text(label, style = UiTypography.primaryAction)
@@ -148,7 +148,7 @@ internal fun ReportAction(label: String, color: Color, enabled: Boolean, protect
 }
 
 @Composable
-internal fun AppHeader(title: String, onMenu: () -> Unit) {
+fun AppHeader(title: String, onMenu: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().background(UiColors.primary).padding(horizontal = UiSpacing.normal),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
@@ -171,7 +171,7 @@ internal fun AppHeader(title: String, onMenu: () -> Unit) {
 }
 
 @Composable
-internal fun SectionHeader(label: String, color: Color = MaterialTheme.colorScheme.onSurface) {
+fun SectionHeader(label: String, color: Color = MaterialTheme.colorScheme.onSurface) {
     Text(label, modifier = Modifier.fillMaxWidth().semantics { heading() }, style = UiTypography.sectionTitle,
         color = color, textAlign = androidx.compose.ui.text.style.TextAlign.Start)
 }
@@ -186,14 +186,14 @@ private fun Modifier.scrollIndicator(metrics: () -> Pair<Float, Float>?): Modifi
     drawRoundRect(Color(0xFF64748B), Offset(x, (size.height - thumb) * position.coerceIn(0f, 1f)), Size(width, thumb), CornerRadius(width / 2))
 }
 
-internal fun Modifier.visibleVerticalScroll(state: ScrollState): Modifier =
+fun Modifier.visibleVerticalScroll(state: ScrollState): Modifier =
     scrollIndicator {
         val max = state.maxValue
         if (max <= 0 || max == Int.MAX_VALUE || state.viewportSize <= 0) null
         else state.viewportSize.toFloat() / (state.viewportSize.toFloat() + max) to state.value.toFloat() / max
     }.padding(end = UiSpacing.normal).verticalScroll(state)
 
-internal fun Modifier.lazyScrollIndicator(state: LazyListState, reserveSpace: Boolean = true): Modifier =
+fun Modifier.lazyScrollIndicator(state: LazyListState, reserveSpace: Boolean = true): Modifier =
     scrollIndicator {
         val info = state.layoutInfo
         val total = info.totalItemsCount
@@ -210,7 +210,7 @@ internal fun Modifier.lazyScrollIndicator(state: LazyListState, reserveSpace: Bo
     }.then(if (reserveSpace) Modifier.padding(end = UiSpacing.normal) else Modifier)
 
 @Composable
-internal fun AppOutlinedButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, color: Color = UiColors.primary, content: @Composable RowScope.() -> Unit) {
+fun AppOutlinedButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, color: Color = UiColors.primary, content: @Composable RowScope.() -> Unit) {
     OutlinedButton(onClick = onClick, modifier = modifier.heightIn(min = UiSpacing.touch), enabled = enabled,
         shape = UiShapes.control, border = BorderStroke(1.dp, if (enabled) color else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = color),
@@ -218,13 +218,13 @@ internal fun AppOutlinedButton(onClick: () -> Unit, modifier: Modifier = Modifie
 }
 
 @Composable
-internal fun AppTextButton(onClick: () -> Unit, enabled: Boolean = true, color: Color = UiColors.primary, content: @Composable RowScope.() -> Unit) {
+fun AppTextButton(onClick: () -> Unit, enabled: Boolean = true, color: Color = UiColors.primary, content: @Composable RowScope.() -> Unit) {
     TextButton(onClick = onClick, enabled = enabled, modifier = Modifier.heightIn(min = UiSpacing.touch),
         shape = UiShapes.control, colors = ButtonDefaults.textButtonColors(contentColor = color), content = content)
 }
 
 @Composable
-internal fun CompactSummary(label: String, count: Long, modifier: Modifier = Modifier) {
+fun CompactSummary(label: String, count: Long, modifier: Modifier = Modifier) {
     OutlinedCard(modifier = modifier.semantics(mergeDescendants = true) {},
         shape = UiShapes.control) {
         Column(Modifier.fillMaxWidth().padding(horizontal = UiSpacing.compact, vertical = UiSpacing.small),

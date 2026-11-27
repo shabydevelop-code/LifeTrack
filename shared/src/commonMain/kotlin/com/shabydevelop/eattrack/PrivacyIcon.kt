@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 
 @Composable
-internal fun PrivacyIcon(color: Color, fingerprint: Boolean = false) {
+fun PrivacyIcon(color: Color, fingerprint: Boolean = false) {
     Canvas(Modifier.size(UiSpacing.compactIcon)) {
         val w = size.width
         val h = size.height
