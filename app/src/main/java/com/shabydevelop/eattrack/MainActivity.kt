@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-class MainActivity : ComponentActivity() {
+class MainActivity : androidx.fragment.app.FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, addActivity: (ActivityKind, Int) -> Unit, addWater: (Int) -> Unit, busy: Boolean) {
+internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, addActivity: (ActivityKind, Int) -> Unit, addWater: (Int) -> Unit, busy: Boolean, openWeight: () -> Unit) {
     var activityDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (activityDialog) ActivityDialog(busy, { activityDialog = false }, { kind, minutes -> activityDialog = false; addActivity(kind, minutes) })
     var waterDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
@@ -62,6 +62,7 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
             ReportActionSpec("שתיית מים", UiColors.water, !busy) { waterDialog = true }
         ))
         ReportAction("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true }
+        ReportAction("מעקב משקל", UiColors.primary, !busy, openWeight)
         Spacer(Modifier.height(UiSpacing.small))
         DailySummary(report)
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })

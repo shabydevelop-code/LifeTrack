@@ -76,7 +76,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
         drawerContent = {
             ModalDrawerSheet(windowInsets = WindowInsets(0, 0, 0, 0)) {
                 Text("מעקב אורח חיים", Modifier.padding(20.dp).semantics { heading() }, style = UiTypography.screenTitle)
-                listOf("home" to "מסך ראשי", "reports" to "דוחות", "history" to "היסטוריית דיווחים", "settings" to "הגדרות").forEach { (target, label) ->
+                listOf("home" to "מסך ראשי", "reports" to "דוחות", "history" to "היסטוריית דיווחים", "weight" to "מעקב משקל", "settings" to "הגדרות").forEach { (target, label) ->
                     NavigationDrawerItem(label = { Text(label, style = UiTypography.body) }, selected = route == target,
                         onClick = {
                             nav.navigate(target) {
@@ -96,14 +96,15 @@ internal fun EatingNavigation(model: CounterViewModel) {
         Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 AppHeader(
-                    title = when (route) { "reports" -> "דוחות"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; else -> "מעקב אורח חיים" },
+                    title = when (route) { "reports" -> "דוחות"; "history" -> "היסטוריית דיווחים"; "settings" -> "הגדרות"; "weight" -> "מעקב משקל"; else -> "מעקב אורח חיים" },
                     onMenu = { scope.launch { drawer.open() } }
                 )
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.weight(1f)) {
-                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model::addWater, model.busy) }
+                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model::addWater, model.busy) { nav.navigate("weight") } }
                     composable("reports") { ReportsScreen(model.report, model.error) }
                     composable("history") { HistoryScreen(model) }
-                    composable("settings") { SettingsScreen(model) }
+                    composable("settings") { ProtectedArea { SettingsScreen(model) } }
+                    composable("weight") { ProtectedArea { WeightScreen() } }
                 }
             }
         }

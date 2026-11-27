@@ -127,10 +127,11 @@ class EatingRepository(context: Context) {
     fun count(type: EventType): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events", "event_type = ?", arrayOf(type.name))
 }
 
-private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 7) {
+internal class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 8) {
     override fun onCreate(db: SQLiteDatabase) {
         createEvents(db)
         createIndex(db)
+        createWeights(db)
     }
 
     private fun createEvents(db: SQLiteDatabase) {
@@ -141,7 +142,12 @@ private class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eatt
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_eating_time ON unhealthy_eating_events(created_at DESC, id DESC)")
     }
 
+    private fun createWeights(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS weight_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL, grams INTEGER NOT NULL CHECK (grams > 0))")
+    }
+
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 8) createWeights(db)
         if (oldVersion == 1) {
             db.execSQL("ALTER TABLE unhealthy_eating_events ADD COLUMN healthy INTEGER NOT NULL DEFAULT 0 CHECK (healthy IN (0,1))")
         }
