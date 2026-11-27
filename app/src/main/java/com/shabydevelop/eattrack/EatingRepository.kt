@@ -53,42 +53,12 @@ class EatingRepository(context: Context) : EatingDataSource {
         db.writableDatabase.delete("unhealthy_eating_events", null, null)
     }
 
-    override fun report(): EatingReport {
-        val now = java.util.Calendar.getInstance()
-        val today = (now.clone() as java.util.Calendar).apply {
-            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
-            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
-        }
-        val week = (today.clone() as java.util.Calendar).apply {
-            add(java.util.Calendar.DAY_OF_YEAR, -(get(java.util.Calendar.DAY_OF_WEEK) - java.util.Calendar.SUNDAY))
-        }
-        val month = (today.clone() as java.util.Calendar).apply { set(java.util.Calendar.DAY_OF_MONTH, 1) }
-        val days = (0..6).map { offset ->
-            val start = (today.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, -offset) }
-            val end = (start.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 1) }
-            val label = java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault()).format(start.time)
-            DayCount(label, countRange(start.timeInMillis, end.timeInMillis, EventType.UNHEALTHY), countRange(start.timeInMillis, end.timeInMillis, EventType.HEALTHY), countRange(start.timeInMillis, end.timeInMillis, EventType.AVOIDED))
-        }
-        fun since(start: java.util.Calendar, type: EventType = EventType.UNHEALTHY) = countRange(start.timeInMillis, now.timeInMillis + 1, type)
-        val first = db.readableDatabase.rawQuery("SELECT MIN(created_at) FROM unhealthy_eating_events WHERE event_type IN ('HEALTHY','UNHEALTHY','AVOIDED')", null).use {
+    override fun report(): EatingReport = buildEatingReport(
+        PlatformReportCalendar.snapshot(), countRange = ::countRange, count = ::count,
+        first = db.readableDatabase.rawQuery("SELECT MIN(created_at) FROM unhealthy_eating_events WHERE event_type IN ('HEALTHY','UNHEALTHY','AVOIDED')", null).use {
             if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else null
-        }
-        val format = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
-        val weekEnd = (week.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 6) }
-        val monthEnd = (month.clone() as java.util.Calendar).apply { set(java.util.Calendar.DAY_OF_MONTH, getActualMaximum(java.util.Calendar.DAY_OF_MONTH)) }
-        val totalLabel = first?.let { format.format(java.util.Date(it)) + " – " + format.format(today.time) } ?: "אין דיווחים"
-        return EatingReport(since(today), since(week), since(month), count(EventType.UNHEALTHY), days,
-            format.format(today.time), format.format(week.time) + " – " + format.format(weekEnd.time),
-            format.format(month.time) + " – " + format.format(monthEnd.time), totalLabel, since(today, EventType.HEALTHY), since(week, EventType.HEALTHY), since(month, EventType.HEALTHY), count(EventType.HEALTHY), since(today, EventType.AVOIDED), since(week, EventType.AVOIDED), since(month, EventType.AVOIDED), count(EventType.AVOIDED), activity = ActivityReport(activityStats(today.timeInMillis), activityStats(week.timeInMillis), activityStats(month.timeInMillis), activityStats(0), (0..6).map { offset ->
-            val start = (today.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, -offset) }
-            val end = (start.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 1) }
-            ActivityDay(java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault()).format(start.time), activityStats(start.timeInMillis, end.timeInMillis))
-        }), water = WaterReport(waterStats(today.timeInMillis), waterStats(week.timeInMillis), waterStats(month.timeInMillis), waterStats(0), (0..6).map { offset ->
-            val start = (today.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, -offset) }
-            val end = (start.clone() as java.util.Calendar).apply { add(java.util.Calendar.DAY_OF_YEAR, 1) }
-            WaterDay(java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault()).format(start.time), waterStats(start.timeInMillis, end.timeInMillis))
-        }))
-    }
+        }, formatDate = PlatformDateTime::date, activityStats = ::activityStats, waterStats = ::waterStats
+    )
 
     private fun waterStats(start: Long, end: Long = PlatformClock.nowMillis() + 1): WaterStats =
         db.readableDatabase.rawQuery("SELECT COUNT(*), COALESCE(SUM(milliliters),0) FROM unhealthy_eating_events WHERE event_type = 'WATER' AND created_at >= ? AND created_at < ?", arrayOf(start.toString(), end.toString())).use { it.moveToFirst(); WaterStats(it.getLong(0), it.getLong(1)) }
