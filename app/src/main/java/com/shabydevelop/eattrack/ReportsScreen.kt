@@ -26,7 +26,7 @@ internal fun ReportsScreen(report: EatingReport, error: Boolean) {
     LazyColumn(Modifier.fillMaxSize().lazyScrollIndicator(scrollState), state = scrollState, contentPadding = PaddingValues(UiSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         if (error) item { Text("לא ניתן לטעון נתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
-        item { SectionHeader("סיכום אכילה לפי תקופה") }
+        item { SectionHeader("סיכום דפוסי אכילה") }
         item { PeriodTable(report.periodRows(true), true) }
         item { SectionHeader("דפוסי אכילה – 7 ימים") }
         item {
