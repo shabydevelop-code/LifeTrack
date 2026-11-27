@@ -32,8 +32,17 @@ internal fun TableLine(weights: List<Float>, modifier: Modifier = Modifier, cell
 }
 
 @Composable
+internal fun TableFrame(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    OutlinedCard(modifier.fillMaxWidth(), content = content)
+}
+
+@Composable
+internal fun Modifier.tableHeaderBackground(): Modifier =
+    background(MaterialTheme.colorScheme.surfaceVariant)
+
+@Composable
 internal fun TableHeading(labels: List<String>, weights: List<Float>, colors: List<Color>? = null) {
-    TableLine(weights, Modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(vertical = UiSpacing.normal).semantics { heading() }) { i ->
+    TableLine(weights, Modifier.tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }) { i ->
         Text(labels[i], style = UiTypography.tableHeading, color = colors?.getOrNull(i) ?: MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
     }
 }
@@ -46,7 +55,7 @@ internal fun MetricValue(value: String, color: Color, modifier: Modifier = Modif
 @Composable
 internal fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
     val weights = if (showRanges) listOf(1.5f, 1f, 1.15f, 1f) else listOf(1f, 1f, 1.15f, 1f)
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    TableFrame {
         TableHeading(listOf("תקופה") + reportLabels, weights, listOf(MaterialTheme.colorScheme.onSurfaceVariant) + reportColors)
         rows.forEach { row ->
             HorizontalDivider()
@@ -76,7 +85,7 @@ internal fun DailySummary(report: EatingReport) {
     val weights = listOf(2f, 1f)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("סיכום יומי")
-        OutlinedCard(Modifier.fillMaxWidth()) {
+        TableFrame {
             rows.forEachIndexed { index, row ->
                 if (index > 0) HorizontalDivider()
                 TableLine(weights, Modifier.padding(vertical = UiSpacing.normal, horizontal = UiSpacing.normal)

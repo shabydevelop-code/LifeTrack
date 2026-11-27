@@ -68,9 +68,10 @@ internal fun HistoryScreen(model: CounterViewModel) {
         val timeWidth = with(LocalDensity.current) {
             measurer.measure("88:88", style = UiTypography.tableCell).size.width.toDp() + UiSpacing.normal
         }.coerceAtLeast(UiSpacing.touch)
-        Row(Modifier.fillMaxWidth().padding(end = UiSpacing.normal).background(MaterialTheme.colorScheme.surfaceVariant).padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
+        TableFrame(Modifier.weight(1f)) {
+        Row(Modifier.fillMaxWidth().tableHeaderBackground().padding(end = UiSpacing.normal).padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
             HistoryCells(timeWidth, "שעה", "סוג דיווח", "פרטים", heading = true, modifier = Modifier.weight(1f))
-            Text("פעולות", modifier = Modifier.width(UiSpacing.touch * 2), style = UiTypography.tableHeading, textAlign = TextAlign.Center)
+            Text("פעולות", modifier = Modifier.width(UiSpacing.touch * 2), style = UiTypography.tableHeading, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
         if (model.error) Text("לא ניתן להשלים את הפעולה או לרענן את הנתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         val scrollState = androidx.compose.foundation.lazy.rememberLazyListState()
@@ -78,7 +79,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
                 val date = dateFormat.format(java.util.Date(event.timestamp))
                 if (index == 0 || date != dateFormat.format(java.util.Date(rows[index - 1].timestamp))) {
-                    Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant).padding(UiSpacing.small).semantics { heading() })
+                    Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().tableHeaderBackground().padding(UiSpacing.small).semantics { heading() })
                 }
                 val time = timeFormat.format(java.util.Date(event.timestamp))
                 val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
@@ -113,6 +114,7 @@ internal fun HistoryScreen(model: CounterViewModel) {
             if (!loading && !error && rows.isEmpty()) item { Text("אין דיווחים בתקופה שנבחרה") }
             if (more && !loading && !error) item { AppOutlinedButton(onClick = { loading = true; pageCount++ }, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) { Text("טעינת דיווחים נוספים") } }
         }
+        }
     }
     pendingEdit?.let { event -> EditEventDialog(event, model, { pendingEdit = null }) }
     pendingDelete?.let { event ->
@@ -142,11 +144,11 @@ private fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selec
 
 @Composable
 private fun HistoryCells(timeWidth: androidx.compose.ui.unit.Dp, time: String, type: String, details: String,
-    modifier: Modifier = Modifier, heading: Boolean = false, typeColor: Color = MaterialTheme.colorScheme.onSurface) {
+    modifier: Modifier = Modifier, heading: Boolean = false, typeColor: Color = if (heading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface) {
     val style = if (heading) UiTypography.tableHeading else UiTypography.tableCell
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(time, modifier = Modifier.width(timeWidth), style = if (heading) style else style.copy(textDirection = TextDirection.Ltr),
-            textAlign = TextAlign.Center, softWrap = false, maxLines = 1)
+            color = if (heading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, softWrap = false, maxLines = 1)
         Text(type, modifier = Modifier.weight(1f).padding(horizontal = UiSpacing.cell), style = style, color = typeColor, textAlign = TextAlign.Center)
         Text(details, modifier = Modifier.weight(1.4f).padding(horizontal = UiSpacing.cell), style = style, color = typeColor, textAlign = TextAlign.Center)
     }
