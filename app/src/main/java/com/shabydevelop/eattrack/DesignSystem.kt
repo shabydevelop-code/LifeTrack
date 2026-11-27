@@ -62,8 +62,8 @@ internal object UiTypography {
     private fun style(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) =
         TextStyle(fontFamily = FontFamily.SansSerif, fontSize = size.sp, lineHeight = line.sp, fontWeight = weight)
 
-    val screenTitle = style(24, 32, FontWeight.SemiBold)
-    val sectionTitle = style(20, 28, FontWeight.Medium)
+    val screenTitle = style(20, 28, FontWeight.SemiBold)
+    val sectionTitle = style(16, 24, FontWeight.SemiBold)
     val primaryAction = style(16, 24, FontWeight.Medium)
     val body = style(16, 24)
     val secondaryAction = style(16, 24, FontWeight.Medium)
