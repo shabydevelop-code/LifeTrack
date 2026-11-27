@@ -48,7 +48,7 @@ private fun EatingChart(days: List<DayCount>) {
                     else {
                         val count = counts[i - 1]
                         val color = reportColors[i - 1]
-                        Text(count.toString(), color = color, style = UiTypography.tableCell)
+                        MetricValue(count.toString(), color)
                     }
                 }
             }

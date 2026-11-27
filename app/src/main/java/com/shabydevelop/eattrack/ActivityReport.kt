@@ -12,7 +12,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.*
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 enum class ActivityKind(val label: String) {
@@ -65,10 +64,10 @@ internal fun ActivitySummary(report: ActivityReport) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("סיכום פעילות אירובית (דק׳)", UiColors.aerobic)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(entries.map { it.first }, weights, List(4) { UiColors.aerobic })
+            TableHeading(entries.map { it.first }, weights)
             HorizontalDivider()
             TableLine(weights, Modifier.padding(vertical = UiSpacing.normal)) { i ->
-                Text(entries[i].second.minutes.toString(), color = UiColors.aerobic, style = UiTypography.tableCell, textAlign = TextAlign.Center,
+                MetricValue(entries[i].second.minutes.toString(), UiColors.aerobic,
                     modifier = Modifier.clearAndSetSemantics { contentDescription = "${entries[i].first}: ${entries[i].second.minutes} דקות" })
             }
         }
@@ -82,7 +81,7 @@ internal fun ActivityChart(days: List<ActivityDay>) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("פעילות אירובית – 7 ימים", UiColors.aerobic)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(listOf("תאריך", "משך הפעילות", "דקות"), weights, List(3) { UiColors.aerobic })
+            TableHeading(listOf("תאריך", "משך הפעילות", "דקות"), weights, listOf(MaterialTheme.colorScheme.onSurfaceVariant, UiColors.aerobic, UiColors.aerobic))
             days.forEach { day ->
                 HorizontalDivider()
                 TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
@@ -93,7 +92,7 @@ internal fun ActivityChart(days: List<ActivityDay>) {
                         1 -> Box(Modifier.fillMaxWidth().height(UiSpacing.medium)) {
                             Box(Modifier.fillMaxWidth(day.stats.minutes.toFloat()/max.toFloat()).fillMaxHeight().background(UiColors.aerobic))
                         }
-                        else -> Text(day.stats.minutes.toString(), style = UiTypography.tableCell, textAlign = TextAlign.Center)
+                        else -> MetricValue(day.stats.minutes.toString(), UiColors.aerobic)
                     }
                 }
             }

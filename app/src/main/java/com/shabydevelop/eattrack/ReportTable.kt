@@ -39,6 +39,11 @@ internal fun TableHeading(labels: List<String>, weights: List<Float>, colors: Li
 }
 
 @Composable
+internal fun MetricValue(value: String, color: Color, modifier: Modifier = Modifier) {
+    Text(value, modifier = modifier, color = color, style = UiTypography.tableCell, textAlign = TextAlign.Center)
+}
+
+@Composable
 internal fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
     val weights = if (showRanges) listOf(1.5f, 1f, 1.15f, 1f) else listOf(1f, 1f, 1.15f, 1f)
     OutlinedCard(Modifier.fillMaxWidth()) {
@@ -51,7 +56,7 @@ internal fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
                 if (i == 0) Column {
                     Text(row.label, style = UiTypography.tableCell)
                     if (showRanges) Text(row.range, style = UiTypography.supporting)
-                } else Text(row.counts[i-1].toString(), textAlign = TextAlign.Center, style = UiTypography.tableCell)
+                } else MetricValue(row.counts[i-1].toString(), reportColors[i-1])
             }
         }
     }
@@ -77,7 +82,7 @@ internal fun DailySummary(report: EatingReport) {
                 TableLine(weights, Modifier.padding(vertical = UiSpacing.normal, horizontal = UiSpacing.normal)
                     .clearAndSetSemantics { contentDescription = "${row.label}: ${row.value}" }) { i ->
                     if (i == 0) Text(row.label, color = row.color, style = UiTypography.tableCell)
-                    else Text(row.value, style = UiTypography.tableCell, textAlign = TextAlign.Center)
+                    else MetricValue(row.value, row.color)
                 }
             }
         }

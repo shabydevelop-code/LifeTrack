@@ -148,6 +148,6 @@ private fun HistoryCells(timeWidth: androidx.compose.ui.unit.Dp, time: String, t
         Text(time, modifier = Modifier.width(timeWidth), style = if (heading) style else style.copy(textDirection = TextDirection.Ltr),
             textAlign = TextAlign.Center, softWrap = false, maxLines = 1)
         Text(type, modifier = Modifier.weight(1f).padding(horizontal = UiSpacing.cell), style = style, color = typeColor, textAlign = TextAlign.Center)
-        Text(details, modifier = Modifier.weight(1.4f).padding(horizontal = UiSpacing.cell), style = style, textAlign = TextAlign.Center)
+        Text(details, modifier = Modifier.weight(1.4f).padding(horizontal = UiSpacing.cell), style = style, color = typeColor, textAlign = TextAlign.Center)
     }
 }

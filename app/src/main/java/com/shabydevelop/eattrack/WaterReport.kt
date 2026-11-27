@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 
 data class WaterStats(val count: Long = 0, val milliliters: Long = 0)
 data class WaterDay(val label: String, val stats: WaterStats)
@@ -50,10 +49,10 @@ internal fun WaterSummary(report: WaterReport) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("סיכום שתיית מים (מ״ל)", UiColors.water)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(entries.map { it.first }, weights, List(4) { UiColors.water })
+            TableHeading(entries.map { it.first }, weights)
             HorizontalDivider()
             TableLine(weights, Modifier.padding(vertical = UiSpacing.normal)) { i ->
-                Text(entries[i].second.milliliters.toString(), color = UiColors.water, style = UiTypography.tableCell, textAlign = TextAlign.Center,
+                MetricValue(entries[i].second.milliliters.toString(), UiColors.water,
                     modifier = Modifier.clearAndSetSemantics { contentDescription = "${entries[i].first}: ${entries[i].second.milliliters} מיליליטר" })
             }
         }
@@ -67,7 +66,7 @@ internal fun WaterChart(days: List<WaterDay>) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("שתיית מים – 7 ימים", UiColors.water)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(listOf("תאריך", "כמות השתייה", "מ״ל"), weights, List(3) { UiColors.water })
+            TableHeading(listOf("תאריך", "כמות השתייה", "מ״ל"), weights, listOf(MaterialTheme.colorScheme.onSurfaceVariant, UiColors.water, UiColors.water))
             days.forEach { day ->
                 HorizontalDivider()
                 TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
@@ -78,7 +77,7 @@ internal fun WaterChart(days: List<WaterDay>) {
                         1 -> Box(Modifier.fillMaxWidth().height(UiSpacing.medium)) {
                             Box(Modifier.fillMaxWidth(day.stats.milliliters.toFloat() / max.toFloat()).fillMaxHeight().background(UiColors.water))
                         }
-                        else -> Text(day.stats.milliliters.toString(), style = UiTypography.tableCell, textAlign = TextAlign.Center)
+                        else -> MetricValue(day.stats.milliliters.toString(), UiColors.water)
                     }
                 }
             }
