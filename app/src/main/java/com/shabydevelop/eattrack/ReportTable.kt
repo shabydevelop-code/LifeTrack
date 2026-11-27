@@ -123,9 +123,10 @@ internal fun DailySummary(report: EatingReport) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("סיכום יומי")
         TableFrame {
-            rows.forEachIndexed { index, row ->
-                if (index > 0) HorizontalDivider()
-                TableLine(weights, Modifier.padding(vertical = UiSpacing.normal, horizontal = UiSpacing.normal)
+            TableHeading(listOf("סוג דיווח", "ערך"), weights)
+            rows.forEach { row ->
+                HorizontalDivider()
+                TableLine(weights, Modifier.padding(vertical = UiSpacing.normal)
                     .clearAndSetSemantics { contentDescription = "${row.label}: ${row.value}" }) { i ->
                     if (i == 0) Text(row.label, color = row.color, style = UiTypography.tableCell)
                     else MetricValue(row.value, row.color)

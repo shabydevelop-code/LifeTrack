@@ -52,15 +52,16 @@ internal fun WeightScreen() {
             AppOutlinedButton(onClick = { input = ""; edit = null; timestamp = System.currentTimeMillis(); add = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("דיווח משקל חדש") }
         }
         if (entries.isNotEmpty()) item {
+            Spacer(Modifier.height(UiSpacing.normal))
             TableFrame {
                 TableLine(listOf(2f,1f), Modifier.padding(vertical = UiSpacing.normal)) { i -> Text(if (i == 0) "משקל אחרון" else kg(entries.first().grams) + " ק״ג", style = UiTypography.tableCell) }
                 HorizontalDivider()
                 TableLine(listOf(2f,1f), Modifier.padding(vertical = UiSpacing.normal)) { i -> Text(if (i == 0) "שינוי מתחילת המעקב" else kg(entries.first().grams - entries.last().grams) + " ק״ג", style = UiTypography.tableCell) }
             }
         }
-        item { Spacer(Modifier.height(UiSpacing.normal)); SectionHeader("היסטוריית שקילות") }
-        if (error) item { Text("לא ניתן להשלים את הפעולה", color = MaterialTheme.colorScheme.error) }
-        if (busy) item { CircularProgressIndicator() }
+        item { Spacer(Modifier.height(UiSpacing.normal)); SectionHeader("היסטוריית שקילות"); Spacer(Modifier.height(UiSpacing.small)) }
+        if (error) item { Text("לא ניתן להשלים את הפעולה", color = MaterialTheme.colorScheme.error); Spacer(Modifier.height(UiSpacing.normal)) }
+        if (busy) item { CircularProgressIndicator(); Spacer(Modifier.height(UiSpacing.normal)) }
         if (!busy && entries.isEmpty()) item { Text("אין שקילות") }
         if (entries.isNotEmpty()) item {
             Row(Modifier.fillMaxWidth().tableSegment(top = true).tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
