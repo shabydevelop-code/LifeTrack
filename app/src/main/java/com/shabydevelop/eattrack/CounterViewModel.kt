@@ -23,6 +23,10 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         private set
     var feedback by mutableStateOf("")
         private set
+    var feedbackType by mutableStateOf<EventType?>(null)
+        private set
+    var failureSequence by mutableLongStateOf(0L)
+        private set
     var successSequence by mutableLongStateOf(0L)
         private set
     var pendingReasonId by mutableStateOf<Long?>(null)
@@ -53,6 +57,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 mutex.withLock { withContext(Dispatchers.IO) { repository.saveReasons(id, reasons, pendingReasonType) } }
+                feedbackType = pendingReasonType
                 closeReasons()
                 feedback = "הסיבות נשמרו"
                 successSequence++
@@ -64,12 +69,12 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
 
     init { reload() }
     fun reload() = refresh()
-    fun addActivity(kind: ActivityKind, minutes: Int) = mutate {
+    fun addActivity(kind: ActivityKind, minutes: Int) = mutate(EventType.AEROBIC) {
         repository.addEvent(EventType.AEROBIC, kind, minutes)
         withContext(Dispatchers.Main) { celebrate(EventType.AEROBIC) }
         "הפעילות נשמרה"
     }
-    fun addWater(milliliters: Int) = mutate {
+    fun addWater(milliliters: Int) = mutate(EventType.WATER) {
         repository.addEvent(EventType.WATER, milliliters = milliliters)
         "דיווח שתיית מים נשמר"
     }
@@ -78,7 +83,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
         val now = SystemClock.elapsedRealtime()
         if (busy || lastTap?.let { now - it < 700L } == true) return
         lastTap = now
-        mutate {
+        mutate(type) {
             val id = repository.addEvent(type)
             withContext(Dispatchers.Main) {
                 if (type == EventType.HEALTHY) celebrate(type)
@@ -94,8 +99,9 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
             try {
                 mutex.withLock {
                     withContext(Dispatchers.IO) { repository.updateEvent(event) }
-                    successSequence++
+                    feedbackType = event.type
                     feedback = "הדיווח עודכן"
+                    successSequence++
                     try {
                         report = withContext(Dispatchers.IO) { repository.report() }
                         error = false
@@ -118,7 +124,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     suspend fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage =
         withContext(Dispatchers.IO) { repository.historyPage(days, type, before) }
 
-    private fun mutate(action: suspend () -> String) {
+    private fun mutate(type: EventType? = null, action: suspend () -> String) {
         if (busy) return
         busy = true
         feedback = ""
@@ -126,6 +132,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
             try {
                 mutex.withLock {
                     val message = withContext(Dispatchers.IO) { action() }
+                    feedbackType = type
                     feedback = message
                     successSequence++
                     report = withContext(Dispatchers.IO) { repository.report() }
@@ -133,6 +140,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
                 }
             } catch (e: android.database.SQLException) {
                 error = true
+                failureSequence++
             } finally {
                 busy = false
             }

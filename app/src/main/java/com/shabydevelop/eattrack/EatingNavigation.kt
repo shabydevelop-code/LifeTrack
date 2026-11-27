@@ -28,15 +28,27 @@ internal fun EatingNavigation(model: CounterViewModel) {
     BackHandler(drawer.isOpen) { scope.launch { drawer.close() } }
     val context = LocalContext.current
     val version = remember(context) { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "" }
-    val toastManager = remember(context.applicationContext) { ToastManager(context.applicationContext) }
-    DisposableEffect(toastManager) { onDispose { toastManager.cancel() } }
+    val feedbackHost = remember { SnackbarHostState() }
+    var feedbackColor by remember { mutableStateOf(UiColors.primary) }
     val view = androidx.compose.ui.platform.LocalView.current
     var handledSequence by androidx.compose.runtime.saveable.rememberSaveable { mutableLongStateOf(model.successSequence) }
     LaunchedEffect(model.successSequence) {
         if (model.successSequence > handledSequence) {
             handledSequence = model.successSequence
-            toastManager.show(model.feedback)
+            feedbackHost.currentSnackbarData?.dismiss()
+            feedbackColor = metricFeedbackColor(model.feedbackType)
             view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+            feedbackHost.showSnackbar(model.feedback, duration = SnackbarDuration.Short)
+        }
+    }
+    var handledFailure by androidx.compose.runtime.saveable.rememberSaveable { mutableLongStateOf(model.failureSequence) }
+    val errorColor = MaterialTheme.colorScheme.error
+    LaunchedEffect(model.failureSequence) {
+        if (model.failureSequence > handledFailure) {
+            handledFailure = model.failureSequence
+            feedbackHost.currentSnackbarData?.dismiss()
+            feedbackColor = errorColor
+            feedbackHost.showSnackbar("לא ניתן להשלים את הפעולה. בדוק את מצב הדיווח.", duration = SnackbarDuration.Long)
         }
     }
     LaunchedEffect(route) {
@@ -96,6 +108,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
             }
         }
         ConfettiEffect(model.celebrationSequence, when (model.celebrationType) { EventType.HEALTHY -> ConfettiStyle.Healthy; EventType.AEROBIC -> ConfettiStyle.Aerobic; else -> ConfettiStyle.Avoided }, Modifier.matchParentSize())
+        AppFeedbackHost(feedbackHost, feedbackColor, Modifier.align(Alignment.BottomCenter).padding(UiSpacing.screen))
         }
     }
 }
