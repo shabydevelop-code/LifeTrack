@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class CounterViewModel(private val repository: EatingDataSource) : ViewModel()
+class CounterViewModel(private val repository: EatingDataSource) : ViewModel() {
     private val mutex = Mutex()
     var report by mutableStateOf(EatingReport())
         private set
