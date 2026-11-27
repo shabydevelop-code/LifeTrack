@@ -98,11 +98,11 @@ internal fun EatingNavigation(model: CounterViewModel) {
                     composable("reports") { ReportsScreen(model.report, model.error) }
                     composable("history") { HistoryScreen(model, PlatformDateTime::date, PlatformDateTime::time) { event, dismiss -> EditEventDialog(event, model, PlatformClock, { timestamp, enabled, change -> DateTimeFields(timestamp, enabled, change) }, dismiss) } }
                     composable("settings") { ProtectedArea { SettingsScreen(model) } }
-                    composable("weight") { ProtectedArea { WeightScreen() } }
+                    composable("weight") { ProtectedArea { AndroidWeightScreen() } }
                 }
             }
         }
-        ConfettiEffect(model.celebrationSequence, when (model.celebrationType) { EventType.HEALTHY -> ConfettiStyle.Healthy; EventType.AEROBIC -> ConfettiStyle.Aerobic; else -> ConfettiStyle.Avoided }, Modifier.matchParentSize())
+        ConfettiEffect(model.celebrationSequence, when (model.celebrationType) { EventType.HEALTHY -> ConfettiStyle.Healthy; EventType.AEROBIC -> ConfettiStyle.Aerobic; else -> ConfettiStyle.Avoided }, Modifier.matchParentSize()) { PlatformFeedback.animationsEnabled(context) }
         AppFeedbackHost(feedbackHost, feedbackColor, Modifier.align(Alignment.BottomCenter).padding(UiSpacing.screen))
         }
     }

@@ -11,10 +11,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.platform.LocalContext
 import kotlin.random.Random
 
-internal data class ConfettiStyle(val durationMillis: Int, val particleCount: Int, val colors: List<Color>) {
+data class ConfettiStyle(val durationMillis: Int, val particleCount: Int, val colors: List<Color>) {
     companion object {
         val Aerobic = ConfettiStyle(1000, 40, listOf(UiColors.aerobic, Color(0xFFA855F7), Color(0xFFC084FC)))
         val Healthy = ConfettiStyle(800, 28, listOf(UiColors.healthy, Color(0xFF22C55E), Color(0xFF86EFAC)))
@@ -23,8 +22,7 @@ internal data class ConfettiStyle(val durationMillis: Int, val particleCount: In
 }
 
 @Composable
-internal fun ConfettiEffect(sequence: Long, style: ConfettiStyle, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
+fun ConfettiEffect(sequence: Long, style: ConfettiStyle, modifier: Modifier = Modifier, animationsEnabled: () -> Boolean) {
     val progress = remember { Animatable(1f) }
     var handled by rememberSaveable { mutableLongStateOf(sequence) }
     var visible by remember { mutableStateOf(false) }
@@ -36,7 +34,7 @@ internal fun ConfettiEffect(sequence: Long, style: ConfettiStyle, modifier: Modi
     LaunchedEffect(sequence) {
         if (sequence == handled) return@LaunchedEffect
         handled = sequence
-        if (!PlatformFeedback.animationsEnabled(context)) {
+        if (!animationsEnabled()) {
             visible = false
             return@LaunchedEffect
         }

@@ -12,16 +12,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Locale
 
 @Composable
-internal fun WeightScreen() {
-    val context = LocalContext.current.applicationContext
+fun WeightScreen(clock: AppClock, load: suspend (Int, WeightEntry?, (WeightDataSource) -> Unit) -> Pair<WeightPage, WeightSummary?>, formatDateTime: (Long) -> String, kg: (Int) -> String, editKg: (Int) -> String, parseGrams: (String) -> Int?, dateTimeFields: @Composable (Long, (Long) -> Unit) -> Unit) {
     val scope = rememberCoroutineScope()
     var entries by remember { mutableStateOf<List<WeightEntry>>(emptyList()) }
     var period by androidx.compose.runtime.saveable.rememberSaveable { mutableIntStateOf(7) }
@@ -40,9 +35,7 @@ internal fun WeightScreen() {
             try {
                 val cursor = if (append) entries.lastOrNull() else null
                 val selectedPeriod = period
-                val (page, totals) = withContext(Dispatchers.IO) {
-                    databaseOperation { WeightRepository(context).use { repo -> action(repo); repo.page(selectedPeriod, cursor) to repo.summary() } }
-                }
+                val (page, totals) = load(selectedPeriod, cursor, action)
                 entries = if (append) entries + page.entries else page.entries
                 summary = totals
                 more = page.hasMore
@@ -52,11 +45,10 @@ internal fun WeightScreen() {
         }
     }
     LaunchedEffect(Unit) { refresh() }
-    fun kg(grams: Int) = String.format(Locale.getDefault(), "%.1f", grams / 1000.0)
     val state = rememberLazyListState()
     LazyColumn(Modifier.fillMaxSize().lazyScrollIndicator(state), state = state, contentPadding = PaddingValues(UiSpacing.screen)) {
         item {
-            AppOutlinedButton(onClick = { input = ""; edit = null; timestamp = PlatformClock.nowMillis(); add = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("דיווח משקל חדש") }
+            AppOutlinedButton(onClick = { input = ""; edit = null; timestamp = clock.nowMillis(); add = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("דיווח משקל חדש") }
         }
         summary?.let { totals -> item {
             Spacer(Modifier.height(UiSpacing.normal))
@@ -86,12 +78,12 @@ internal fun WeightScreen() {
         }
         itemsIndexed(entries, key = { _, entry -> entry.id }) { index, entry ->
             Column(Modifier.fillMaxWidth().tableSegment(bottom = index == entries.lastIndex)) {
-                val date = PlatformDateTime.dateTime(entry.timestamp)
+                val date = formatDateTime(entry.timestamp)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TableLine(listOf(2f,1f), Modifier.weight(1f)) { i -> Text(if (i == 0) date else kg(entry.grams), style = UiTypography.tableCell) }
                     TableRowActions("שקילה $date", !busy, {
                         edit = entry
-                        input = java.math.BigDecimal.valueOf(entry.grams.toLong(), 3).stripTrailingZeros().toPlainString()
+                        input = editKg(entry.grams)
                         timestamp = entry.timestamp
                         add = true
                     }, { delete = entry })
@@ -108,13 +100,13 @@ internal fun WeightScreen() {
         }
     }
     if (add) {
-        val grams = input.replace(',','.').toBigDecimalOrNull()?.movePointRight(3)?.let { runCatching { it.intValueExact() }.getOrNull() }
+        val grams = parseGrams(input)
         AlertDialog(onDismissRequest = { add = false }, title = { Text(if (edit == null) "דיווח משקל חדש" else "עריכת שקילה", style = UiTypography.sectionTitle) },
             text = { Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) { OutlinedTextField(value = input, onValueChange = { input = it }, label = { Text("משקל בק״ג") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
-                if (edit != null) DateTimeFields(timestamp) { timestamp = it }
-                if (edit != null && timestamp > PlatformClock.nowMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
+                if (edit != null) dateTimeFields(timestamp) { timestamp = it }
+                if (edit != null && timestamp > clock.nowMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
             } },
-            confirmButton = { AppTextButton(onClick = { grams?.let { value -> val existing = edit; val time = timestamp; refresh { repo -> if (existing == null) repo.add(value) else repo.update(existing.copy(grams = value, timestamp = time)) } }; add = false }, enabled = grams != null && grams > 0 && timestamp <= PlatformClock.nowMillis() && !busy) { Text("שמירה") } },
+            confirmButton = { AppTextButton(onClick = { grams?.let { value -> val existing = edit; val time = timestamp; refresh { repo -> if (existing == null) repo.add(value) else repo.update(existing.copy(grams = value, timestamp = time)) } }; add = false }, enabled = grams != null && grams > 0 && timestamp <= clock.nowMillis() && !busy) { Text("שמירה") } },
             dismissButton = { AppTextButton(onClick = { add = false }) { Text("ביטול") } })
     }
     delete?.let { entry ->
