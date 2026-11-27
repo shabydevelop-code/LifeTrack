@@ -15,7 +15,7 @@ internal fun AndroidWeightScreen() {
         }
     }, PlatformDateTime::dateTime,
         { grams -> String.format(Locale.getDefault(), "%.1f", grams / 1000.0) },
-        { grams -> java.math.BigDecimal.valueOf(grams.toLong(), 3).stripTrailingZeros().toPlainString() },
-        { input -> input.replace(',','.').toBigDecimalOrNull()?.movePointRight(3)?.let { runCatching { it.intValueExact() }.getOrNull() } },
+        ::editableWeightKg,
+        ::parseWeightGrams,
         { timestamp, change -> DateTimeFields(timestamp, change = change) })
 }

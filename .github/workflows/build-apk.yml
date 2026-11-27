@@ -44,7 +44,7 @@ jobs:
           keytool -list -keystore "$KEYSTORE" -storepass android -alias androiddebugkey > /dev/null
           echo "ANDROID_SIGNING_KEYSTORE=$KEYSTORE" >> "$GITHUB_ENV"
       - name: Test shared logic
-        run: gradle --no-daemon :shared:testDebugUnitTest
+        run: gradle --no-daemon :shared:testDebugUnitTest :app:testDebugUnitTest
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
       - name: Verify APK signing certificate
