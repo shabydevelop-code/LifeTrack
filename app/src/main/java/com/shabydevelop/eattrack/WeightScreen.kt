@@ -37,7 +37,7 @@ internal fun WeightScreen() {
     var edit by remember { mutableStateOf<WeightEntry?>(null) }
     var timestamp by remember { mutableLongStateOf(0L) }
     var delete by remember { mutableStateOf<WeightEntry?>(null) }
-    fun refresh(append: Boolean = false, action: (WeightRepository) -> Unit = {}) {
+    fun refresh(append: Boolean = false, action: (WeightDataSource) -> Unit = {}) {
         busy = true
         scope.launch {
             try {
@@ -59,7 +59,7 @@ internal fun WeightScreen() {
     val state = rememberLazyListState()
     LazyColumn(Modifier.fillMaxSize().lazyScrollIndicator(state), state = state, contentPadding = PaddingValues(UiSpacing.screen)) {
         item {
-            AppOutlinedButton(onClick = { input = ""; edit = null; timestamp = System.currentTimeMillis(); add = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("דיווח משקל חדש") }
+            AppOutlinedButton(onClick = { input = ""; edit = null; timestamp = PlatformClock.nowMillis(); add = true }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("דיווח משקל חדש") }
         }
         summary?.let { totals -> item {
             Spacer(Modifier.height(UiSpacing.normal))
@@ -116,7 +116,7 @@ internal fun WeightScreen() {
             text = { Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) { OutlinedTextField(value = input, onValueChange = { input = it }, label = { Text("משקל בק״ג") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
                 if (edit != null) WeightDateTimeFields(timestamp) { timestamp = it }
             } },
-            confirmButton = { AppTextButton(onClick = { grams?.let { value -> val existing = edit; val time = timestamp; refresh { repo -> if (existing == null) repo.add(value) else repo.update(existing.copy(grams = value, timestamp = time)) } }; add = false }, enabled = grams != null && grams > 0 && timestamp <= System.currentTimeMillis() && !busy) { Text("שמירה") } },
+            confirmButton = { AppTextButton(onClick = { grams?.let { value -> val existing = edit; val time = timestamp; refresh { repo -> if (existing == null) repo.add(value) else repo.update(existing.copy(grams = value, timestamp = time)) } }; add = false }, enabled = grams != null && grams > 0 && timestamp <= PlatformClock.nowMillis() && !busy) { Text("שמירה") } },
             dismissButton = { AppTextButton(onClick = { add = false }) { Text("ביטול") } })
     }
     delete?.let { entry ->
@@ -135,12 +135,12 @@ private fun WeightDateTimeFields(timestamp: Long, change: (Long) -> Unit) {
     AppOutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
         picker = android.app.DatePickerDialog(context, { _, y, m, d ->
             change(Calendar.getInstance().apply { timeInMillis = timestamp; set(y,m,d) }.timeInMillis)
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply { datePicker.maxDate = System.currentTimeMillis(); show() }
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply { datePicker.maxDate = PlatformClock.nowMillis(); show() }
     }) { Text("תאריך: " + SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(timestamp))) }
     AppOutlinedButton(modifier = Modifier.fillMaxWidth(), onClick = {
         picker = android.app.TimePickerDialog(context, { _, h, m ->
             change(Calendar.getInstance().apply { timeInMillis = timestamp; set(Calendar.HOUR_OF_DAY,h); set(Calendar.MINUTE,m); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0) }.timeInMillis)
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).apply { show() }
     }) { Text("שעה: " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))) }
-    if (timestamp > System.currentTimeMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
+    if (timestamp > PlatformClock.nowMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
 }

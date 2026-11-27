@@ -1,7 +1,6 @@
 package com.shabydevelop.eattrack
 
 import android.app.Application
-import android.os.SystemClock
 import androidx.compose.runtime.*
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +11,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class CounterViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = EatingRepository(application)
+    private val repository: EatingDataSource = EatingRepository(application)
     private val mutex = Mutex()
     var report by mutableStateOf(EatingReport())
         private set
@@ -80,7 +79,7 @@ class CounterViewModel(application: Application) : AndroidViewModel(application)
     }
     fun increment(type: EventType) {
         if (type == EventType.AEROBIC || type == EventType.WATER) return
-        val now = SystemClock.elapsedRealtime()
+        val now = PlatformClock.monotonicMillis()
         if (busy || lastTap?.let { now - it < 700L } == true) return
         lastTap = now
         mutate(type) {

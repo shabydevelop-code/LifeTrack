@@ -36,11 +36,7 @@ internal fun ConfettiEffect(sequence: Long, style: ConfettiStyle, modifier: Modi
     LaunchedEffect(sequence) {
         if (sequence == handled) return@LaunchedEffect
         handled = sequence
-        if (android.os.Build.VERSION.SDK_INT >= 26 && !android.animation.ValueAnimator.areAnimatorsEnabled()) {
-            visible = false
-            return@LaunchedEffect
-        }
-        if (android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f) {
+        if (!PlatformFeedback.animationsEnabled(context)) {
             visible = false
             return@LaunchedEffect
         }

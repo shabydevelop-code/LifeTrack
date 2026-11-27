@@ -6,12 +6,12 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.DatabaseUtils
 
-class EatingRepository(context: Context) {
+class EatingRepository(context: Context) : EatingDataSource {
     private val db = EatingDatabase(context.applicationContext)
 
-    fun addEvent(type: EventType, activity: ActivityKind? = null, minutes: Int = 0, milliliters: Int = 0): Long {
+    override fun addEvent(type: EventType, activity: ActivityKind?, minutes: Int, milliliters: Int): Long {
         val values = ContentValues().apply {
-            put("created_at", System.currentTimeMillis())
+            put("created_at", PlatformClock.nowMillis())
             put("event_type", type.name)
             put("activity_kind", activity?.name ?: "")
             put("minutes", minutes)
@@ -20,13 +20,13 @@ class EatingRepository(context: Context) {
         return db.writableDatabase.insertOrThrow("unhealthy_eating_events", null, values)
     }
 
-    fun saveReasons(id: Long, reasons: Set<EatingReason>, type: EventType) {
+    override fun saveReasons(id: Long, reasons: Set<EatingReason>, type: EventType) {
         val values = ContentValues().apply { put("reasons", reasons.sortedBy { it.ordinal }.joinToString(",") { it.name }) }
         if (db.writableDatabase.update("unhealthy_eating_events", values, "id = ? AND event_type = ?", arrayOf(id.toString(), type.name)) != 1)
             throw android.database.SQLException("Report not found")
     }
 
-    fun updateEvent(event: EatingEvent) {
+    override fun updateEvent(event: EatingEvent) {
         val aerobic = event.type == EventType.AEROBIC
         require(!aerobic || (event.activity != null && event.minutes > 0))
         val values = ContentValues().apply {
@@ -41,19 +41,19 @@ class EatingRepository(context: Context) {
             throw android.database.SQLException("Report not found")
     }
 
-    fun deleteEvent(id: Long): Boolean =
+    override fun deleteEvent(id: Long): Boolean =
         db.writableDatabase.delete("unhealthy_eating_events", "id = ?", arrayOf(id.toString())) == 1
 
-    fun undoLast(): Boolean {
+    override fun undoLast(): Boolean {
         return db.writableDatabase.delete("unhealthy_eating_events",
             "id = (SELECT id FROM unhealthy_eating_events ORDER BY id DESC LIMIT 1)", null) > 0
     }
 
-    fun reset() {
+    override fun reset() {
         db.writableDatabase.delete("unhealthy_eating_events", null, null)
     }
 
-    fun report(): EatingReport {
+    override fun report(): EatingReport {
         val now = java.util.Calendar.getInstance()
         val today = (now.clone() as java.util.Calendar).apply {
             set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
@@ -90,13 +90,13 @@ class EatingRepository(context: Context) {
         }))
     }
 
-    private fun waterStats(start: Long, end: Long = System.currentTimeMillis() + 1): WaterStats =
+    private fun waterStats(start: Long, end: Long = PlatformClock.nowMillis() + 1): WaterStats =
         db.readableDatabase.rawQuery("SELECT COUNT(*), COALESCE(SUM(milliliters),0) FROM unhealthy_eating_events WHERE event_type = 'WATER' AND created_at >= ? AND created_at < ?", arrayOf(start.toString(), end.toString())).use { it.moveToFirst(); WaterStats(it.getLong(0), it.getLong(1)) }
 
-    private fun activityStats(start: Long, end: Long = System.currentTimeMillis() + 1): ActivityStats =
+    private fun activityStats(start: Long, end: Long = PlatformClock.nowMillis() + 1): ActivityStats =
         db.readableDatabase.rawQuery("SELECT COUNT(*), COALESCE(SUM(minutes),0) FROM unhealthy_eating_events WHERE event_type = 'AEROBIC' AND created_at >= ? AND created_at < ?", arrayOf(start.toString(), end.toString())).use { it.moveToFirst(); ActivityStats(it.getLong(0), it.getLong(1)) }
 
-    fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage {
+    override fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage {
         val clauses = mutableListOf<String>()
         val args = mutableListOf<String>()
         if (days != null) {
@@ -124,7 +124,7 @@ class EatingRepository(context: Context) {
     private fun countRange(start: Long, end: Long, type: EventType): Long =
         DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events", "created_at >= ? AND created_at < ? AND event_type = ?", arrayOf(start.toString(), end.toString(), type.name))
 
-    fun count(type: EventType): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events", "event_type = ?", arrayOf(type.name))
+    override fun count(type: EventType): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events", "event_type = ?", arrayOf(type.name))
 }
 
 internal class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 9) {

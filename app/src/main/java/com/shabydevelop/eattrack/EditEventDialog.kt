@@ -30,7 +30,7 @@ internal fun EditEventDialog(event: EatingEvent, model: CounterViewModel, dismis
     var failed by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-    val valid = timestamp <= System.currentTimeMillis() && (type != EventType.AEROBIC || (minutes.toIntOrNull() ?: 0) > 0) && (type != EventType.WATER || (water.toIntOrNull() ?: 0) > 0)
+    val valid = timestamp <= PlatformClock.nowMillis() && (type != EventType.AEROBIC || (minutes.toIntOrNull() ?: 0) > 0) && (type != EventType.WATER || (water.toIntOrNull() ?: 0) > 0)
     AlertDialog(onDismissRequest = { if (!model.busy) dismiss() },
         title = { Text("עריכת דיווח", style = UiTypography.sectionTitle) },
         text = {
@@ -39,7 +39,7 @@ internal fun EditEventDialog(event: EatingEvent, model: CounterViewModel, dismis
                     DatePickerDialog(context, { _, y, m, d ->
                         timestamp = Calendar.getInstance().apply { timeInMillis = timestamp; set(y,m,d) }.timeInMillis
                     }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply {
-                        datePicker.maxDate = System.currentTimeMillis()
+                        datePicker.maxDate = PlatformClock.nowMillis()
                     }.show()
                 }) { Text("תאריך: " + SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(timestamp))) }
                 AppOutlinedButton(enabled = !model.busy, modifier = Modifier.fillMaxWidth(), onClick = {
@@ -74,7 +74,7 @@ internal fun EditEventDialog(event: EatingEvent, model: CounterViewModel, dismis
                         isError = (minutes.toIntOrNull() ?: 0) <= 0, modifier = Modifier.fillMaxWidth())
                 }
                 if (type == EventType.WATER) WaterAmountField(water, { water = it }, !model.busy)
-                if (timestamp > System.currentTimeMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
+                if (timestamp > PlatformClock.nowMillis()) Text("לא ניתן לבחור מועד עתידי", color = MaterialTheme.colorScheme.error)
                 if (failed) Text("לא ניתן לשמור את הדיווח. ניתן לנסות שוב.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             }
         },

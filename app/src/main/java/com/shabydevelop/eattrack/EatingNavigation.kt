@@ -37,7 +37,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
             handledSequence = model.successSequence
             feedbackHost.currentSnackbarData?.dismiss()
             feedbackColor = metricFeedbackColor(model.feedbackType)
-            view.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+            PlatformFeedback.success(view)
             feedbackHost.showSnackbar(model.feedback, duration = SnackbarDuration.Short)
         }
     }
@@ -54,7 +54,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
     LaunchedEffect(route) {
         while (true) {
             model.reload()
-            val now = System.currentTimeMillis()
+            val now = PlatformClock.nowMillis()
             delay(60000L - now % 60000L)
         }
     }

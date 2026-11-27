@@ -12,8 +12,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.core.content.ContextCompat
 
-internal class AuthenticationManager(private val activity: FragmentActivity) {
-    fun authenticate(result: (Boolean) -> Unit): BiometricPrompt {
+internal class AuthenticationManager(private val activity: FragmentActivity) : IdentityAuthenticator {
+    override fun authenticate(result: (Boolean) -> Unit): AuthenticationRequest {
         val prompt = BiometricPrompt(activity, ContextCompat.getMainExecutor(activity),
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(value: BiometricPrompt.AuthenticationResult) { result(true) }
@@ -23,7 +23,7 @@ internal class AuthenticationManager(private val activity: FragmentActivity) {
             .setSubtitle("כניסה לאזור אישי")
             .setDeviceCredentialAllowed(true).build()
         prompt.authenticate(info)
-        return prompt
+        return AuthenticationRequest { prompt.cancelAuthentication() }
     }
 }
 
@@ -41,7 +41,7 @@ internal fun ProtectedArea(content: @Composable () -> Unit) {
     val manager = remember(activity) { AuthenticationManager(activity) }
     val session: ProtectedSessionViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     var pending by remember { mutableStateOf(false) }
-    var prompt by remember { mutableStateOf<BiometricPrompt?>(null) }
+    var prompt by remember { mutableStateOf<AuthenticationRequest?>(null) }
     var active by remember { mutableStateOf(true) }
     DisposableEffect(activity) {
         val observer = LifecycleEventObserver { _, event ->
@@ -52,7 +52,7 @@ internal fun ProtectedArea(content: @Composable () -> Unit) {
             active = false
             if (!activity.isChangingConfigurations) session.lock()
             activity.lifecycle.removeObserver(observer)
-            prompt?.cancelAuthentication()
+            prompt?.cancel()
         }
     }
     if (session.unlocked) content() else Column(Modifier.fillMaxSize().padding(UiSpacing.screen),
