@@ -60,19 +60,16 @@ internal fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityK
 
 @Composable
 internal fun ActivitySummary(report: ActivityReport) {
+    val entries = listOf("היום" to report.today, "השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total)
+    val weights = List(4) { 1f }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
-        SectionHeader("סיכום פעילות אירובית", UiColors.aerobic)
-        val entries = listOf("היום" to report.today, "השבוע" to report.week, "החודש" to report.month, "מצטבר" to report.total)
-        val weights = listOf(1f, 1f, 1f, 1f)
+        SectionHeader("סיכום פעילות אירובית (דק׳)", UiColors.aerobic)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(entries.map { it.first }, weights, List(entries.size) { UiColors.aerobic })
+            TableHeading(entries.map { it.first }, weights, List(4) { UiColors.aerobic })
             HorizontalDivider()
             TableLine(weights, Modifier.padding(vertical = UiSpacing.normal)) { i ->
-                val (label, stats) = entries[i]
-                Column(Modifier.clearAndSetSemantics { contentDescription = "$label: ${stats.count} פעילויות, ${stats.minutes} דקות" }, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stats.count.toString(), color = UiColors.aerobic, style = UiTypography.tableCell)
-                    Text("${stats.minutes} דק׳", style = UiTypography.tableCell, textAlign = TextAlign.Center)
-                }
+                Text(entries[i].second.minutes.toString(), color = UiColors.aerobic, style = UiTypography.tableCell, textAlign = TextAlign.Center,
+                    modifier = Modifier.clearAndSetSemantics { contentDescription = "${entries[i].first}: ${entries[i].second.minutes} דקות" })
             }
         }
     }
