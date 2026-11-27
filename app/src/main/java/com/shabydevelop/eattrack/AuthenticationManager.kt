@@ -55,6 +55,6 @@ internal fun ProtectedArea(content: @Composable () -> Unit) {
             prompt = manager.authenticate { success ->
                 if (active) { pending = false; unlocked = success }
             }
-        }, enabled = !pending, modifier = Modifier.fillMaxWidth()) { Text("אימות זהות") }
+        }, enabled = !pending, modifier = Modifier.fillMaxWidth()) { PrivacyIcon(color = LocalContentColor.current, fingerprint = true); Spacer(Modifier.width(UiSpacing.small)); Text("אימות זהות") }
     }
 }

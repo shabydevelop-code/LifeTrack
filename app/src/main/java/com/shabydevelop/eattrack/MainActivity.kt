@@ -61,7 +61,7 @@ internal fun CounterScreen(report: EatingReport, error: Boolean, increment: (Eve
             ReportActionSpec("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) },
             ReportActionSpec("שתיית מים", UiColors.water, !busy) { waterDialog = true },
             ReportActionSpec("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true },
-            ReportActionSpec("מעקב משקל", UiColors.primary, !busy) { openWeight() }
+            ReportActionSpec("מעקב משקל", UiColors.primary, !busy, protected = true) { openWeight() }
         ))
         Spacer(Modifier.height(UiSpacing.small))
         DailySummary(report)

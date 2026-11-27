@@ -104,7 +104,7 @@ internal fun AdaptiveActionPair(first: @Composable () -> Unit, second: @Composab
     }
 }
 
-internal data class ReportActionSpec(val label: String, val color: Color, val enabled: Boolean, val onClick: () -> Unit)
+internal data class ReportActionSpec(val label: String, val color: Color, val enabled: Boolean, val protected: Boolean = false, val onClick: () -> Unit)
 
 @Composable
 internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap: androidx.compose.ui.unit.Dp = UiSpacing.normal) {
@@ -117,7 +117,7 @@ internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap:
                 val requiredCellWidth = pair.maxOf { action ->
                     val textWidth = measurer.measure(action.label, style = UiTypography.primaryAction,
                         softWrap = false, maxLines = 1).size.width
-                    with(density) { textWidth.toDp() } + UiSpacing.actionHorizontalPadding * 2 + UiSpacing.tiny
+                    with(density) { textWidth.toDp() } + UiSpacing.actionHorizontalPadding * 2 + UiSpacing.tiny + (if (action.protected) UiSpacing.compactIcon + UiSpacing.small else 0.dp)
                 }.coerceAtLeast(UiSpacing.touch)
                 val fitsPair = pair.size == 2 && availableWidth >= requiredCellWidth * 2 + UiSpacing.normal
                 if (fitsPair) {
@@ -125,13 +125,13 @@ internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap:
                         horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
                         pair.forEach { action ->
                             Box(Modifier.weight(1f).fillMaxHeight(), propagateMinConstraints = true) {
-                                ReportAction(action.label, action.color, action.enabled, action.onClick)
+                                ReportAction(action.label, action.color, action.enabled, action.protected, action.onClick)
                             }
                         }
                     }
                 } else {
                     pair.forEach { action ->
-                        ReportAction(action.label, action.color, action.enabled, action.onClick)
+                        ReportAction(action.label, action.color, action.enabled, action.protected, action.onClick)
                     }
                 }
             }
@@ -140,8 +140,9 @@ internal fun AdaptiveReportActions(actions: List<ReportActionSpec>, verticalGap:
 }
 
 @Composable
-internal fun ReportAction(label: String, color: Color, enabled: Boolean, onClick: () -> Unit) {
+internal fun ReportAction(label: String, color: Color, enabled: Boolean, protected: Boolean = false, onClick: () -> Unit) {
     AppOutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth(), color = color) {
+        if (protected) { PrivacyIcon(color = LocalContentColor.current); Spacer(Modifier.width(UiSpacing.small)) }
         Text(label, style = UiTypography.primaryAction)
     }
 }
