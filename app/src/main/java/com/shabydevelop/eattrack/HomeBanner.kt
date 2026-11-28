@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 internal fun HomeBanner(availableHeight: Dp) {
     val fontScale = LocalDensity.current.fontScale
     // Decorative content yields to controls and daily summary on constrained screens.
-    val height = (availableHeight * 0.17f).coerceAtMost(UiSpacing.homeBannerMaxHeight)
-    if (availableHeight < 540.dp || fontScale >= 1.3f || height < UiSpacing.homeBannerMinHeight) return
+    val height = (availableHeight * 0.12f).coerceAtMost(UiSpacing.homeBannerMaxHeight)
+    if (availableHeight < 620.dp || fontScale >= 1.3f || height < UiSpacing.homeBannerMinHeight) return
     Image(
         painter = painterResource(R.drawable.home_banner),
         contentDescription = null,
