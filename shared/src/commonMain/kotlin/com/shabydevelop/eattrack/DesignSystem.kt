@@ -42,10 +42,12 @@ object UiSpacing {
     val action = touch
     val actionHorizontalPadding = medium
     val pairedActionMinWidth = 340.dp
-    val habitActionMinHeight = 72.dp
+    val habitActionMinHeight = 64.dp
+    val habitActionIcon = 20.dp
+    val habitActionGap = 4.dp
     val aboutLogo = 64.dp
-    val homeBannerMinHeight = 80.dp
-    val homeBannerMaxHeight = 120.dp
+    val homeBannerMinHeight = 64.dp
+    val homeBannerMaxHeight = 88.dp
 }
 
 object UiShapes {
