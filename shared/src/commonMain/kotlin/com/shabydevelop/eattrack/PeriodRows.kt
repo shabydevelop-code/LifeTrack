@@ -6,5 +6,5 @@ fun EatingReport.periodRows(includeToday: Boolean): List<PeriodRow> = listOf(
     PeriodRow("היום", todayLabel, listOf(healthyToday, today, avoidedToday), foodToday),
     PeriodRow("השבוע", weekLabel, listOf(healthyWeek, week, avoidedWeek), foodWeek),
     PeriodRow("החודש", monthLabel, listOf(healthyMonth, month, avoidedMonth), foodMonth),
-    PeriodRow("כל הזמנים", totalLabel, listOf(healthyTotal, total, avoidedTotal), foodTotal)
+    PeriodRow("מצטבר", totalLabel, listOf(healthyTotal, total, avoidedTotal), foodTotal)
 ).let { if (includeToday) it else it.drop(1) }

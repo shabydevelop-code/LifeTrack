@@ -67,7 +67,7 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
             }
         }
         val types: @Composable () -> Unit = {
-            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "ארוחות", 2 to "נשנושים", 6 to "טרם סווגו", 3 to "ויתור", 4 to "אירובית", 5 to "מים"), type) {
+            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "ארוחות", 2 to "נשנושים", 3 to "ויתור", 4 to "אירובית", 5 to "מים"), type) {
                 type = it; pageCount = 1; rows = emptyList(); more = false; loading = true
             }
         }
