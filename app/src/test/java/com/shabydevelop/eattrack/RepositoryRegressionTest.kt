@@ -68,11 +68,17 @@ class RepositoryRegressionTest {
         SQLiteDatabase.openOrCreateDatabase(path, null).use { db ->
             db.execSQL("CREATE TABLE weight_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL, grams INTEGER NOT NULL CHECK (grams > 0))")
             db.execSQL("INSERT INTO weight_entries VALUES (42, 1000, 72501)")
+            db.execSQL("CREATE TABLE unhealthy_eating_events (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL, event_type TEXT NOT NULL, reasons TEXT NOT NULL DEFAULT '', activity_kind TEXT NOT NULL DEFAULT '', minutes INTEGER NOT NULL DEFAULT 0, milliliters INTEGER NOT NULL DEFAULT 0)")
+            db.execSQL("INSERT INTO unhealthy_eating_events (id, created_at, event_type) VALUES (1, 1000, 'HEALTHY'), (2, 2000, 'UNHEALTHY')")
             db.version = 8
         }
         EatingDatabase(context).use { helper ->
             val db = helper.writableDatabase
-            assertEquals(9, db.version)
+            assertEquals(10, db.version)
+            db.rawQuery("SELECT food_kind, healthy_percent FROM unhealthy_eating_events ORDER BY id", null).use {
+                assertTrue(it.moveToFirst()); assertEquals("", it.getString(0)); assertEquals(100, it.getInt(1))
+                assertTrue(it.moveToNext()); assertEquals("", it.getString(0)); assertEquals(0, it.getInt(1))
+            }
             db.rawQuery("SELECT grams FROM weight_entries WHERE id = 42", null).use {
                 assertTrue(it.moveToFirst()); assertEquals(72501, it.getInt(0))
             }
