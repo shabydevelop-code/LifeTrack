@@ -25,13 +25,13 @@ fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -
     if (waterDialog) WaterDialog(busy, { waterDialog = false }, { amount -> waterDialog = false; addWater(amount) })
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val availableHeight = maxHeight
-    val gap = (availableHeight * 0.009f).coerceIn(UiSpacing.small, UiSpacing.compact)
     Column(
-        modifier = Modifier.fillMaxSize().visibleVerticalScroll(rememberScrollState()).padding(horizontal = UiSpacing.screen, vertical = gap),
+        modifier = Modifier.fillMaxSize().visibleVerticalScroll(rememberScrollState()).padding(horizontal = UiSpacing.screen, vertical = UiSpacing.homeTopGap),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(gap)
+        verticalArrangement = Arrangement.Top
     ) {
         banner(availableHeight)
+        Spacer(Modifier.height(UiSpacing.homeBannerGap))
         HabitActions(listOf(
             HabitActionSpec("אכילה בריאה", UiColors.healthy, HabitSymbol.FOOD, !busy) { increment(EventType.HEALTHY) },
             HabitActionSpec("אכילה לא בריאה", UiColors.unhealthy, HabitSymbol.UNHEALTHY, !busy) { increment(EventType.UNHEALTHY) },
@@ -40,7 +40,9 @@ fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -
             HabitActionSpec("פעילות אירובית", UiColors.aerobic, HabitSymbol.ACTIVITY, !busy) { activityDialog = true },
             HabitActionSpec("מעקב משקל", UiColors.primary, HabitSymbol.WEIGHT, !busy, protected = true) { openWeight() }
         ))
+        Spacer(Modifier.height(UiSpacing.homeSummaryGap))
         DailySummary(report)
+        if (error) Spacer(Modifier.height(UiSpacing.normal))
         if (error) Text("לא ניתן לרענן את הנתונים. בדוק את מצב הדיווח לפני ניסיון נוסף.", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
     }
     }
