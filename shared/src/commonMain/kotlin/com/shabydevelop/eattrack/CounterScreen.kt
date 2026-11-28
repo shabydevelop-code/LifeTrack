@@ -21,14 +21,14 @@ import androidx.compose.ui.unit.dp
 fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, addActivity: (ActivityKind, Int) -> Unit, addWater: (Int) -> Unit, busy: Boolean, addFood: (FoodKind, Int) -> Unit, banner: @Composable (androidx.compose.ui.unit.Dp) -> Unit, openWeight: () -> Unit) {
     var foodKind by remember { mutableStateOf<FoodKind?>(null) }
     foodKind?.let { kind ->
-        AlertDialog(onDismissRequest = { foodKind = null }, title = { Text(kind.label) },
-            text = { Column(Modifier.visibleVerticalScroll(rememberScrollState())) {
+        AlertDialog(onDismissRequest = { foodKind = null }, title = { Text(kind.label, style = UiTypography.sectionTitle) },
+            text = { Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
                 listOf(100,75,50,25,0).forEach { percent ->
-                    AppOutlinedButton(onClick = { foodKind = null; addFood(kind, percent) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
-                        Text("$percent% בריאה")
+                    AppOutlinedButton(onClick = { foodKind = null; addFood(kind, percent) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) {
+                        Text("$percent% בריאה", style = UiTypography.secondaryAction)
                     }
                 }
-            } }, confirmButton = {}, dismissButton = { AppTextButton(onClick = { foodKind = null }) { Text("ביטול") } })
+            } }, confirmButton = {}, dismissButton = { AppTextButton(onClick = { foodKind = null }) { Text("ביטול", style = UiTypography.secondaryAction) } })
     }
     var activityDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (activityDialog) ActivityDialog(busy, { activityDialog = false }, { kind, minutes -> activityDialog = false; addActivity(kind, minutes) })
