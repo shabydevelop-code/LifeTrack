@@ -12,11 +12,11 @@ import androidx.compose.ui.unit.Dp
 @Composable
 internal fun HomeBanner(availableHeight: Dp) {
     // Keep the banner visible; shrink it on constrained screens.
-    val height = (availableHeight * 0.12f).coerceIn(UiSpacing.touch, UiSpacing.homeBannerMaxHeight)
+    val height = (availableHeight * 0.16f).coerceIn(UiSpacing.touch, UiSpacing.homeBannerMaxHeight)
     Image(
         painter = painterResource(R.drawable.home_banner),
         contentDescription = null,
-        contentScale = ContentScale.Fit,
-        modifier = Modifier.fillMaxWidth().height(height).clip(UiShapes.control)
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxWidth().height(height).clip(UiShapes.habitAction)
     )
 }
