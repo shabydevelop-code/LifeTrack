@@ -85,7 +85,7 @@ private fun FoodGroup.percentText(): String = average?.let { "$it%" } ?: "—"
 
 @Composable
 fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String = "תקופה") {
-    val weights = listOf(1.4f, 1f, 1f, 1f, 0.8f)
+    val weights = listOf(1.25f, 1f, 1f, 1f, 0.8f)
     val labels = listOf(firstLabel, "ארוחות", "נשנושים", "בריאות", "ויתור")
     val neutral = MaterialTheme.colorScheme.onSurface
     TableFrame {
@@ -112,7 +112,6 @@ fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String =
             }
         }
     }
-    Text("ארוחות ונשנושים: כמות בשורה העליונה, אחוז בריאות בשורה התחתונה. הממוצע הכללי כולל גם דיווחים שטרם סווגו.", style = UiTypography.supporting)
 }
 
 private data class DailySummaryRow(val label: String, val value: String, val color: Color, val health: String? = null, val combined: Boolean = false)

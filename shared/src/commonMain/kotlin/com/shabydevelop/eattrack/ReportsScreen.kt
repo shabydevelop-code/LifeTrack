@@ -16,7 +16,7 @@ fun ReportsScreen(report: EatingReport, error: Boolean) {
         verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         if (error) item { Text("לא ניתן לטעון נתונים", color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
         item { SectionHeader("סיכום דפוסי אכילה") }
-        item { PeriodTable(report.periodRows(true), true) }
+        item { PeriodTable(report.periodRows(true), false) }
         item { EatingChart(report.days) }
         item { WaterSummary(report.water) }
         item { WaterChart(report.water.days) }
