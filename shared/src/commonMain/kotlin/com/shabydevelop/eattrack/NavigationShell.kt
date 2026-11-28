@@ -13,10 +13,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+import androidx.compose.ui.platform.LocalAccessibilityManager
 
 @Composable
 fun NavigationShell(model: CounterViewModel, route: String, drawer: DrawerState, version: String, clock: AppClock, successFeedback: () -> Unit, animationsEnabled: () -> Boolean, navigate: (String) -> Unit, destination: @Composable () -> Unit) {
     val scope = rememberCoroutineScope()
+    val accessibilityManager = LocalAccessibilityManager.current
+    val successDuration = accessibilityManager?.calculateRecommendedTimeoutMillis(
+        originalTimeoutMillis = 1200L, containsIcons = false, containsText = true, containsControls = false
+    ) ?: 1200L
     val feedbackHost = remember { SnackbarHostState() }
     var feedbackColor by remember { mutableStateOf(UiColors.primary) }
     var handledSequence by androidx.compose.runtime.saveable.rememberSaveable { mutableLongStateOf(model.successSequence) }
@@ -26,7 +32,9 @@ fun NavigationShell(model: CounterViewModel, route: String, drawer: DrawerState,
             feedbackHost.currentSnackbarData?.dismiss()
             feedbackColor = metricFeedbackColor(model.feedbackType)
             successFeedback()
-            feedbackHost.showSnackbar(model.feedback, duration = SnackbarDuration.Short)
+            withTimeoutOrNull(successDuration) {
+                feedbackHost.showSnackbar(model.feedback, duration = SnackbarDuration.Indefinite)
+            }
         }
     }
     var handledFailure by androidx.compose.runtime.saveable.rememberSaveable { mutableLongStateOf(model.failureSequence) }
