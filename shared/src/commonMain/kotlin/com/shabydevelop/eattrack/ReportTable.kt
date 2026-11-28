@@ -86,7 +86,17 @@ fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String =
     val labels = listOf(firstLabel, "ארוחות בריאות", "ארוחות לא בריאות", "נשנושים בריאים", "נשנושים לא בריאים", "ויתור")
     val colors = listOf(UiColors.healthy, UiColors.unhealthy, UiColors.healthy, UiColors.unhealthy, UiColors.avoided)
     TableFrame {
-        TableHeading(labels, weights)
+        Column(Modifier.fillMaxWidth().tableHeaderBackground().clearAndSetSemantics {
+            heading()
+            contentDescription = "$firstLabel, ארוחות: בריא ולא בריא, נשנושים: בריא ולא בריא, ויתור"
+        }) {
+            TableLine(listOf(weights[0], weights[1] + weights[2], weights[3] + weights[4], weights[5]), Modifier.padding(top = UiSpacing.normal, bottom = UiSpacing.small)) { i ->
+                Text(listOf(firstLabel, "ארוחות", "נשנושים", "ויתור")[i], style = UiTypography.tableHeading, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
+            }
+            TableLine(weights, Modifier.padding(bottom = UiSpacing.normal)) { i ->
+                if (i in 1..4) Text(if (i % 2 == 1) "בריא" else "לא בריא", style = UiTypography.tableHeading, color = colors[i - 1], textAlign = TextAlign.Center)
+            }
+        }
         rows.forEach { row ->
             val food = row.food
             val values = listOf(food.meals.healthyCount, food.meals.unhealthyCount, food.snacks.healthyCount, food.snacks.unhealthyCount, row.counts[2])
