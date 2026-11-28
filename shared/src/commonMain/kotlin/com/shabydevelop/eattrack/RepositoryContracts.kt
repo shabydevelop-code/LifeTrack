@@ -2,6 +2,7 @@ package com.shabydevelop.eattrack
 
 interface EatingDataSource {
     fun addEvent(type: EventType, activity: ActivityKind? = null, minutes: Int = 0, milliliters: Int = 0): Long
+    fun addFood(kind: FoodKind, percent: Int): Long
     fun saveReasons(id: Long, reasons: Set<EatingReason>, type: EventType)
     fun updateEvent(event: EatingEvent)
     fun deleteEvent(id: Long): Boolean
