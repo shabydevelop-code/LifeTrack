@@ -45,7 +45,7 @@ fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -
         Spacer(Modifier.height(UiSpacing.homeBannerGap))
         HabitActions(listOf(
             HabitActionSpec("ארוחה", UiColors.primary, HabitSymbol.FOOD, !busy) { foodKind = FoodKind.MEAL },
-            HabitActionSpec("נשנוש", UiColors.primary, HabitSymbol.UNHEALTHY, !busy) { foodKind = FoodKind.SNACK },
+            HabitActionSpec("נשנוש", UiColors.primary, HabitSymbol.SNACK, !busy) { foodKind = FoodKind.SNACK },
             HabitActionSpec("ויתרתי על הפיתוי", UiColors.avoided, HabitSymbol.AVOIDED, !busy) { increment(EventType.AVOIDED) },
             HabitActionSpec("שתיית מים", UiColors.water, HabitSymbol.WATER, !busy) { waterDialog = true },
             HabitActionSpec("פעילות אירובית", UiColors.aerobic, HabitSymbol.ACTIVITY, !busy) { activityDialog = true },

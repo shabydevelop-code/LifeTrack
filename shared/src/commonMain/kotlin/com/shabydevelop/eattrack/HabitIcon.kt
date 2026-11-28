@@ -16,7 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 
-internal enum class HabitSymbol { FOOD, UNHEALTHY, AVOIDED, WATER, ACTIVITY, WEIGHT, PRIVACY }
+internal enum class HabitSymbol { FOOD, UNHEALTHY, AVOIDED, WATER, ACTIVITY, WEIGHT, PRIVACY, SNACK }
 
 @Composable
 internal fun HabitIcon(symbol: HabitSymbol, color: Color, iconSize: androidx.compose.ui.unit.Dp = UiSpacing.large) {
@@ -41,6 +41,22 @@ internal fun HabitIcon(symbol: HabitSymbol, color: Color, iconSize: androidx.com
             HabitSymbol.UNHEALTHY -> {
                 outline(listOf(3f to 5f,21f to 5f,12f to 22f),true)
                 for ((x,y) in listOf(9f to 9f,15f to 9f,12f to 14f)) drawCircle(color,1.4f*u,Offset(x*u,y*u))
+            }
+            HabitSymbol.SNACK -> {
+                val bread = Path().apply {
+                    moveTo(3*u, 10*u)
+                    cubicTo(3*u, 2*u, 21*u, 2*u, 21*u, 10*u)
+                    close()
+                }
+                drawPath(bread, color, style = Stroke(1.8f*u, cap = StrokeCap.Round))
+                outline(listOf(3f to 14f, 6f to 12.5f, 9f to 14f, 12f to 12.5f, 15f to 14f, 18f to 12.5f, 21f to 14f))
+                val base = Path().apply {
+                    moveTo(3*u, 17*u)
+                    lineTo(21*u, 17*u)
+                    cubicTo(21*u, 22*u, 3*u, 22*u, 3*u, 17*u)
+                    close()
+                }
+                drawPath(base, color, style = Stroke(1.8f*u, cap = StrokeCap.Round))
             }
             HabitSymbol.AVOIDED -> {
                 drawCircle(color,9*u,Offset(12*u,12*u),style=Stroke(1.8f*u))
