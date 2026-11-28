@@ -49,7 +49,7 @@ fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -
             HabitActionSpec("ויתרתי על הפיתוי", UiColors.avoided, HabitSymbol.AVOIDED, !busy) { increment(EventType.AVOIDED) },
             HabitActionSpec("שתיית מים", UiColors.water, HabitSymbol.WATER, !busy) { waterDialog = true },
             HabitActionSpec("פעילות אירובית", UiColors.aerobic, HabitSymbol.ACTIVITY, !busy) { activityDialog = true },
-            HabitActionSpec("מעקב משקל", UiColors.primary, HabitSymbol.WEIGHT, !busy, protected = true) { openWeight() }
+            HabitActionSpec("מעקב משקל", UiColors.primary, HabitSymbol.WEIGHT, !busy) { openWeight() }
         ))
         Spacer(Modifier.height(UiSpacing.homeSummaryGap))
         DailySummary(report)
