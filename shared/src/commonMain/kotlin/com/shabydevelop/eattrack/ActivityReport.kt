@@ -33,8 +33,8 @@ fun ActivityDialog(busy: Boolean, dismiss: () -> Unit, save: (ActivityKind, Int)
                 }
                 Text("משך הפעילות בדקות", color = UiColors.aerobic, style = UiTypography.body)
                 Column(Modifier.selectableGroup()) {
-                    listOf(15, 30, 45, 60).chunked(2).forEach { pair ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+                    (10..60 step 10).toList().chunked(3).forEach { pair ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
                             pair.forEach { value ->
                                 Row(Modifier.weight(1f).heightIn(min = UiSpacing.touch).selectable(minutes == value, role = Role.RadioButton, onClick = { minutes = value }), verticalAlignment = Alignment.CenterVertically) {
                                     RadioButton(selected = minutes == value, onClick = null)
