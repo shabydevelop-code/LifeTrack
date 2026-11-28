@@ -76,6 +76,14 @@ class CounterViewModel(private val repository: EatingDataSource, private val clo
         withContext(Dispatchers.Main) { celebrate(EventType.WATER) }
         "דיווח שתיית מים נשמר"
     }
+    fun addFood(kind: FoodKind, percent: Int) = mutate(if (percent == 100) EventType.HEALTHY else EventType.UNHEALTHY) {
+        val id = repository.addFood(kind, percent)
+        withContext(Dispatchers.Main) {
+            if (percent == 100) celebrate(EventType.HEALTHY)
+            else { pendingReasonType = EventType.UNHEALTHY; pendingReasonId = id; reasonError = false }
+        }
+        "דיווח ${kind.label} נשמר"
+    }
     fun increment(type: EventType) {
         if (type == EventType.AEROBIC || type == EventType.WATER) return
         val now = clock.monotonicMillis()
