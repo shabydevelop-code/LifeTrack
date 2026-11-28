@@ -24,15 +24,15 @@ internal fun HabitActions(actions: List<HabitActionSpec>) {
     val measurer = rememberTextMeasurer()
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val available = maxWidth
-        Column(verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+        Column(verticalArrangement = Arrangement.spacedBy(UiSpacing.habitActionGap)) {
             actions.chunked(2).forEach { pair ->
                 val needed = pair.maxOf { action ->
                     with(density) { measurer.measure(action.label, style = UiTypography.primaryAction,
-                        softWrap = false).size.width.toDp() } + UiSpacing.normal * 2
+                        softWrap = false).size.width.toDp() } + UiSpacing.compact * 2
                 }
-                if (pair.size == 2 && available >= needed * 2 + UiSpacing.normal) {
+                if (pair.size == 2 && available >= needed * 2 + UiSpacing.habitActionGap) {
                     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+                        horizontalArrangement = Arrangement.spacedBy(UiSpacing.habitActionGap)) {
                         pair.forEach { HabitAction(it, Modifier.weight(1f).fillMaxHeight()) }
                     }
                 } else {
@@ -58,12 +58,12 @@ private fun HabitAction(action: HabitActionSpec, modifier: Modifier) {
             contentColor = color,
             disabledContainerColor = Color.White
         ),
-        contentPadding = PaddingValues(horizontal = UiSpacing.normal, vertical = UiSpacing.normal)
+        contentPadding = PaddingValues(horizontal = UiSpacing.compact, vertical = UiSpacing.compact)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
+            verticalArrangement = Arrangement.spacedBy(UiSpacing.tiny)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
-                HabitIcon(action.symbol, LocalContentColor.current)
+                HabitIcon(action.symbol, LocalContentColor.current, UiSpacing.habitActionIcon)
                 if (action.protected) PrivacyIcon(color = LocalContentColor.current)
             }
             Text(action.label, style = UiTypography.primaryAction, textAlign = TextAlign.Center)
