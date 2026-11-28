@@ -32,13 +32,13 @@ fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -
         verticalArrangement = Arrangement.spacedBy(gap)
     ) {
         banner(availableHeight)
-        AdaptiveReportActions(listOf(
-            ReportActionSpec("אכילה בריאה", UiColors.healthy, !busy) { increment(EventType.HEALTHY) },
-            ReportActionSpec("אכילה לא בריאה", UiColors.unhealthy, !busy) { increment(EventType.UNHEALTHY) },
-            ReportActionSpec("ויתרתי על הפיתוי", UiColors.avoided, !busy) { increment(EventType.AVOIDED) },
-            ReportActionSpec("שתיית מים", UiColors.water, !busy) { waterDialog = true },
-            ReportActionSpec("פעילות אירובית", UiColors.aerobic, !busy) { activityDialog = true },
-            ReportActionSpec("מעקב משקל", UiColors.primary, !busy, protected = true) { openWeight() }
+        HabitActions(listOf(
+            HabitActionSpec("אכילה בריאה", UiColors.healthy, HabitSymbol.FOOD, !busy) { increment(EventType.HEALTHY) },
+            HabitActionSpec("אכילה לא בריאה", UiColors.unhealthy, HabitSymbol.UNHEALTHY, !busy) { increment(EventType.UNHEALTHY) },
+            HabitActionSpec("ויתרתי על הפיתוי", UiColors.avoided, HabitSymbol.AVOIDED, !busy) { increment(EventType.AVOIDED) },
+            HabitActionSpec("שתיית מים", UiColors.water, HabitSymbol.WATER, !busy) { waterDialog = true },
+            HabitActionSpec("פעילות אירובית", UiColors.aerobic, HabitSymbol.ACTIVITY, !busy) { activityDialog = true },
+            HabitActionSpec("מעקב משקל", UiColors.primary, HabitSymbol.WEIGHT, !busy, protected = true) { openWeight() }
         ))
         Spacer(Modifier.height(UiSpacing.small))
         DailySummary(report)
