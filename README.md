@@ -22,4 +22,34 @@ Build only after explicit approval, using workflow_dispatch or an approved updat
 
 Application ID: `com.shabydevelop.eattrack`. Preserve this ID and signing certificate for in-place updates.
 
+## Wireless Android updates (Windows PowerShell)
+
+ADB is installed at `C:\platform-tools\adb.exe`. For an already paired device, enable Wireless debugging and connect both devices to the same Wi-Fi network.
+
+Discover the current connection endpoint:
+
+```powershell
+& "C:\platform-tools\adb.exe" mdns services
+```
+
+Connect using the IP and port of the `_adb-tls-connect._tcp` service (replace IP:PORT with the actual endpoint):
+
+```powershell
+& "C:\platform-tools\adb.exe" connect IP:PORT
+```
+
+Verify the connection:
+
+```powershell
+& "C:\platform-tools\adb.exe" devices
+```
+
+Install the downloaded APK in place, preserving application data:
+
+```powershell
+& "C:\platform-tools\adb.exe" install -r "$env:USERPROFILE\Downloads\LifeTrack.apk"
+```
+
+The connection port may change between sessions. Pair again only if the existing pairing is no longer valid.
+
 Development rules: [AGENTS.md](AGENTS.md).
