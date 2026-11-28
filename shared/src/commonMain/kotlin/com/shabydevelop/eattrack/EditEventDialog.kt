@@ -24,11 +24,11 @@ fun EditEventDialog(event: EatingEvent, model: CounterViewModel, clock: AppClock
     var failed by remember { mutableStateOf(false) }
     val valid = timestamp <= clock.nowMillis() && (!type.isFood || foodKind != null) && (type != EventType.AEROBIC || (minutes.toIntOrNull() ?: 0) > 0) && (type != EventType.WATER || (water.toIntOrNull() ?: 0) > 0)
     AlertDialog(onDismissRequest = { if (!model.busy) dismiss() },
-        title = { Text("עריכת דיווח", style = UiTypography.sectionTitle) },
+        title = { Text("עריכת דיווח", style = UiTypography.screenTitle, modifier = Modifier.semantics { heading() }) },
         text = {
             Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
                 dateTimeFields(timestamp, !model.busy) { timestamp = it }
-                Text("סוג הדיווח", style = UiTypography.tableHeading)
+                Text("סוג הדיווח", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
                 Column(Modifier.selectableGroup()) {
                     EventType.entries.forEach { option ->
                         EditChoice(option.label, type == option, !model.busy) {
@@ -37,13 +37,13 @@ fun EditEventDialog(event: EatingEvent, model: CounterViewModel, clock: AppClock
                     }
                 }
                 if (type.isFood) {
-                    Text("סוג אכילה")
+                    Text("סוג אכילה", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
                     Column(Modifier.selectableGroup()) {
                         FoodKind.entries.forEach { kind -> EditChoice(kind.label, foodKind == kind, !model.busy) { foodKind = kind } }
                     }
                 }
                 if (type.isFood || type == EventType.AVOIDED) {
-                    Text("סיבת הדיווח", style = UiTypography.tableHeading)
+                    Text("סיבת הדיווח", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
                     Column(Modifier.selectableGroup()) {
                         EditChoice("ללא סיבה", reasons.isEmpty(), !model.busy) { reasons = emptySet() }
                         (reasonOptions(if (type.isFood) EventType.UNHEALTHY else type) + reasons).distinct().forEach { reason ->
@@ -52,7 +52,7 @@ fun EditEventDialog(event: EatingEvent, model: CounterViewModel, clock: AppClock
                     }
                 }
                 if (type == EventType.AEROBIC) {
-                    Text("סוג הפעילות", color = UiColors.aerobic, style = UiTypography.tableHeading)
+                    Text("סוג הפעילות", style = UiTypography.sectionTitle, modifier = Modifier.semantics { heading() })
                     Column(Modifier.selectableGroup()) {
                         ActivityKind.entries.forEach { option -> EditChoice(option.label, activity == option, !model.busy) { activity = option } }
                     }

@@ -78,7 +78,7 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
         item(key = "table-header") {
             Row(Modifier.fillMaxWidth().tableSegment(top = true).tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
                 HistoryCells(timeWidth, "שעה", "סוג דיווח", "פרטים", heading = true, modifier = Modifier.weight(1f))
-                Text("פעולות", modifier = Modifier.width(UiSpacing.touch * 2), style = UiTypography.tableHeading, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                TableHeaderText("פעולות", modifier = Modifier.width(UiSpacing.touch * 2), textAlign = TextAlign.Center)
             }
         }
             itemsIndexed(rows, key = { _, event -> event.id }) { index, event ->
@@ -89,12 +89,17 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
                 }
                 val time = formatTime(event.timestamp)
                 val displayType = if (event.type.isFood) event.foodKind?.label ?: "אכילה" else event.type.label
-                val reasons = if (event.type.isFood) listOf(if (event.classifiedType == EventType.HEALTHY) "בריא" else "לא בריא", event.reasons.joinToString(" · ") { it.label }).filter { it.isNotEmpty() }.joinToString(" · ") else if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
+                val details = when {
+                    event.type.isFood -> if (event.classifiedType == EventType.HEALTHY) "בריא" else "לא בריא"
+                    event.type == EventType.AEROBIC -> "${event.activity?.label ?: ""} · ${event.minutes} דקות"
+                    event.type == EventType.WATER -> "${event.milliliters} מ״ל"
+                    else -> ""
+                }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                HistoryCells(timeWidth, time, displayType, reasons.ifEmpty { "—" },
+                HistoryCells(timeWidth, time, displayType, details.ifEmpty { "—" },
                     typeColor = when (event.classifiedType) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic; EventType.WATER -> UiColors.water },
                     modifier = Modifier.weight(1f).clearAndSetSemantics {
-                        contentDescription = "$date, שעה $time, $displayType, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
+                        contentDescription = "$date, שעה $time, $displayType, " + if (details.isEmpty()) "ללא פרטים נוספים" else "פרטים: $details"
                     })
                 TableRowActions("דיווח $displayType, $date, $time", !model.busy, { pendingEdit = event }, { pendingDelete = event })
                 }
@@ -136,11 +141,11 @@ fun HistoryFilter(label: String, options: List<Pair<Int, String>>, selected: Int
 
 @Composable
 private fun HistoryCells(timeWidth: androidx.compose.ui.unit.Dp, time: String, type: String, details: String,
-    modifier: Modifier = Modifier, heading: Boolean = false, typeColor: Color = if (heading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface) {
+    modifier: Modifier = Modifier, heading: Boolean = false, typeColor: Color = if (heading) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface) {
     val style = if (heading) UiTypography.tableHeading else UiTypography.tableCell
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(time, modifier = Modifier.width(timeWidth), style = if (heading) style else style.copy(textDirection = TextDirection.Ltr),
-            color = if (heading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, softWrap = false, maxLines = 1)
+            color = if (heading) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center, softWrap = false, maxLines = 1)
         Text(type, modifier = Modifier.weight(1f).padding(horizontal = UiSpacing.cell), style = style, color = typeColor, textAlign = TextAlign.Center)
         Text(details, modifier = Modifier.weight(1.4f).padding(horizontal = UiSpacing.cell), style = style, color = typeColor, textAlign = TextAlign.Center)
     }
