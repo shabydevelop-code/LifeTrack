@@ -41,6 +41,13 @@ internal fun EatingNavigation(model: CounterViewModel) {
                     composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model::addWater, model.busy, banner = { HomeBanner(it) }) { nav.navigate("weight") } }
                     composable("reports") { ReportsScreen(model.report, model.error) }
                     composable("history") { HistoryScreen(model, PlatformDateTime::date, PlatformDateTime::time) { event, dismiss -> EditEventDialog(event, model, PlatformClock, { timestamp, enabled, change -> DateTimeFields(timestamp, enabled, change) }, dismiss) } }
+                    composable("about") { AboutScreen(version) {
+                        androidx.compose.foundation.Image(
+                            painter = androidx.compose.ui.res.painterResource(R.drawable.ic_launcher_foreground),
+                            contentDescription = null,
+                            modifier = Modifier.size(UiSpacing.homeBannerMinHeight).background(UiColors.primary, UiShapes.control)
+                        )
+                    } }
                     composable("settings") { ProtectedArea { SettingsScreen(model) } }
                     composable("weight") { ProtectedArea { AndroidWeightScreen() } }
                 }
