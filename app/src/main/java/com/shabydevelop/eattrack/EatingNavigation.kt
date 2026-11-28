@@ -38,7 +38,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
             }
         }) {
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.fillMaxSize()) {
-                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model::addWater, model.busy, banner = { HomeBanner(it) }) { nav.navigate("weight") } }
+                    composable("home") { CounterScreen(model.report, model.error, model::increment, model::addActivity, model::addWater, model.busy, model::addFood, banner = { HomeBanner(it) }) { nav.navigate("weight") } }
                     composable("reports") { ReportsScreen(model.report, model.error) }
                     composable("history") { HistoryScreen(model, PlatformDateTime::date, PlatformDateTime::time) { event, dismiss -> EditEventDialog(event, model, PlatformClock, { timestamp, enabled, change -> DateTimeFields(timestamp, enabled, change) }, dismiss) } }
                     composable("about") { AboutScreen(version) {
