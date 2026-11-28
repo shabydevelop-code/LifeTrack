@@ -71,7 +71,7 @@ class EatingRepository(context: Context) : EatingDataSource {
         PlatformReportCalendar.snapshot(), countRange = ::countRange, count = ::count,
         first = db.readableDatabase.rawQuery("SELECT MIN(created_at) FROM unhealthy_eating_events WHERE event_type IN ('HEALTHY','UNHEALTHY','AVOIDED')", null).use {
             if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else null
-        }, formatDate = PlatformDateTime::date, activityStats = ::activityStats, waterStats = ::waterStats, foodStats = ::foodStats
+        }, formatDate = PlatformDateTime::date, activityStats = ::activityStats, waterStats = ::waterStats, foodStats = ::foodStats, activityDurations = ::activityDurations
     )
 
     private fun foodStats(start: Long, end: Long): FoodStats {
@@ -87,6 +87,17 @@ class EatingRepository(context: Context) : EatingDataSource {
 
     private fun activityStats(start: Long, end: Long = PlatformClock.nowMillis() + 1): ActivityStats =
         db.readableDatabase.rawQuery("SELECT COUNT(*), COALESCE(SUM(minutes),0) FROM unhealthy_eating_events WHERE event_type = 'AEROBIC' AND created_at >= ? AND created_at < ?", arrayOf(start.toString(), end.toString())).use { it.moveToFirst(); ActivityStats(it.getLong(0), it.getLong(1)) }
+
+    private fun activityDurations(start: Long, end: Long): List<ActivityDuration> {
+        val totals = mutableMapOf<ActivityKind, Long>()
+        db.readableDatabase.rawQuery("SELECT activity_kind, SUM(minutes) FROM unhealthy_eating_events WHERE event_type = 'AEROBIC' AND created_at >= ? AND created_at < ? GROUP BY activity_kind", arrayOf(start.toString(), end.toString())).use { cursor ->
+            while (cursor.moveToNext()) {
+                val kind = ActivityKind.entries.firstOrNull { it.name == cursor.getString(0) } ?: ActivityKind.OTHER
+                totals[kind] = (totals[kind] ?: 0L) + cursor.getLong(1)
+            }
+        }
+        return ActivityKind.entries.mapNotNull { kind -> totals[kind]?.let { ActivityDuration(kind, it) } }
+    }
 
     override fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage =
         queryHistory(days, type, before, false, null)

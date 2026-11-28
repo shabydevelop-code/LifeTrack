@@ -12,7 +12,8 @@ fun buildEatingReport(
     formatDate: (Long) -> String,
     activityStats: (Long, Long) -> ActivityStats,
     waterStats: (Long, Long) -> WaterStats,
-    foodStats: (Long, Long) -> FoodStats = { _, _ -> FoodStats() }
+    foodStats: (Long, Long) -> FoodStats = { _, _ -> FoodStats() },
+    activityDurations: (Long, Long) -> List<ActivityDuration> = { _, _ -> emptyList() }
 ): EatingReport {
     val p = periods
     val end = p.now + 1
@@ -24,7 +25,7 @@ fun buildEatingReport(
         since(p.today, EventType.HEALTHY), since(p.week, EventType.HEALTHY), since(p.month, EventType.HEALTHY), count(EventType.HEALTHY),
         since(p.today, EventType.AVOIDED), since(p.week, EventType.AVOIDED), since(p.month, EventType.AVOIDED), count(EventType.AVOIDED),
         activity = ActivityReport(activityStats(p.today,end), activityStats(p.week,end), activityStats(p.month,end), activityStats(0,end),
-            p.days.map { ActivityDay(it.label, activityStats(it.start,it.end)) }),
+            p.days.map { ActivityDay(it.label, activityStats(it.start,it.end), activityDurations(it.start,it.end)) }),
         water = WaterReport(waterStats(p.today,end), waterStats(p.week,end), waterStats(p.month,end), waterStats(0,end),
             p.days.map { WaterDay(it.label, waterStats(it.start,it.end)) }),
         foodToday = foodStats(p.today,end), foodWeek = foodStats(p.week,end), foodMonth = foodStats(p.month,end), foodTotal = foodStats(0,end))

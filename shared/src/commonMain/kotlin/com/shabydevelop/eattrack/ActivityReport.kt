@@ -69,23 +69,23 @@ fun ActivitySummary(report: ActivityReport) {
 
 @Composable
 fun ActivityChart(days: List<ActivityDay>) {
-    val max = (days.maxOfOrNull { it.stats.minutes } ?: 0L).coerceAtLeast(1L)
     val weights = listOf(1f, 3f, 1f)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("פעילות אירובית – 7 ימים", UiColors.aerobic)
         OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(listOf("תאריך", "משך הפעילות", "דקות"), weights)
+            TableHeading(listOf("תאריך", "סוג הפעילות", "דקות"), weights)
             days.forEach { day ->
                 HorizontalDivider()
-                TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
-                    contentDescription = "${day.label}: ${day.stats.minutes} דקות, ${day.stats.count} פעילויות"
-                }) { i ->
-                    when (i) {
-                        0 -> Text(day.label, style = UiTypography.tableCell)
-                        1 -> Box(Modifier.fillMaxWidth().height(UiSpacing.medium)) {
-                            Box(Modifier.fillMaxWidth(day.stats.minutes.toFloat()/max.toFloat()).fillMaxHeight().background(UiColors.aerobic))
+                val entries = day.durations.ifEmpty { listOf(ActivityDuration(ActivityKind.OTHER, day.stats.minutes)) }
+                entries.forEachIndexed { index, entry ->
+                    TableLine(weights, Modifier.padding(vertical = UiSpacing.small).clearAndSetSemantics {
+                        contentDescription = "${day.label}: " + (if (entry.minutes == 0L) "ללא פעילות" else entry.kind.label) + ", ${entry.minutes} דקות"
+                    }) { i ->
+                        when (i) {
+                            0 -> if (index == 0) Text(day.label, style = UiTypography.tableCell)
+                            1 -> Text(if (entry.minutes == 0L) "—" else entry.kind.label, style = UiTypography.tableCell, color = UiColors.aerobic)
+                            else -> MetricValue(entry.minutes.toString(), UiColors.aerobic)
                         }
-                        else -> MetricValue(day.stats.minutes.toString(), UiColors.aerobic)
                     }
                 }
             }
