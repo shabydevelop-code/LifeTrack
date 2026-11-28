@@ -13,9 +13,21 @@ class EatingRepository(context: Context) : EatingDataSource {
         val values = ContentValues().apply {
             put("created_at", PlatformClock.nowMillis())
             put("event_type", type.name)
+            if (type.isFood) put("healthy_percent", if (type == EventType.HEALTHY) 100 else 0)
             put("activity_kind", activity?.name ?: "")
             put("minutes", minutes)
             put("milliliters", milliliters)
+        }
+        return db.writableDatabase.insertOrThrow("unhealthy_eating_events", null, values)
+    }
+
+    override fun addFood(kind: FoodKind, percent: Int): Long {
+        require(percent in 0..100)
+        val values = ContentValues().apply {
+            put("created_at", PlatformClock.nowMillis())
+            put("event_type", if (percent == 100) "HEALTHY" else "UNHEALTHY")
+            put("food_kind", kind.name)
+            put("healthy_percent", percent)
         }
         return db.writableDatabase.insertOrThrow("unhealthy_eating_events", null, values)
     }
@@ -32,7 +44,9 @@ class EatingRepository(context: Context) : EatingDataSource {
         val values = ContentValues().apply {
             put("created_at", event.timestamp)
             put("event_type", event.type.name)
-            put("reasons", if (event.type == EventType.UNHEALTHY || event.type == EventType.AVOIDED) event.reasons.joinToString(",") { it.name } else "")
+            put("food_kind", if (event.type.isFood) event.foodKind?.name ?: "" else "")
+            if (event.type.isFood) put("healthy_percent", event.healthyPercent ?: if (event.type == EventType.HEALTHY) 100 else 0) else putNull("healthy_percent")
+            put("reasons", if (event.type.isFood || event.type == EventType.AVOIDED) event.reasons.joinToString(",") { it.name } else "")
             put("activity_kind", if (aerobic) event.activity!!.name else "")
             put("minutes", if (aerobic) event.minutes else 0)
             put("milliliters", if (event.type == EventType.WATER) event.milliliters else 0)
@@ -79,10 +93,10 @@ class EatingRepository(context: Context) : EatingDataSource {
             args.add(before.timestamp.toString()); args.add(before.timestamp.toString()); args.add(before.id.toString())
         }
         val rows = mutableListOf<EatingEvent>()
-        db.readableDatabase.query("unhealthy_eating_events", arrayOf("id", "created_at", "event_type", "reasons", "activity_kind", "minutes", "milliliters"),
+        db.readableDatabase.query("unhealthy_eating_events", arrayOf("id", "created_at", "event_type", "reasons", "activity_kind", "minutes", "milliliters", "food_kind", "healthy_percent"),
             clauses.takeIf { it.isNotEmpty() }?.joinToString(" AND "), args.toTypedArray(), null, null,
             "created_at ASC, id ASC", "31").use {
-            while (it.moveToNext()) rows.add(EatingEvent(it.getLong(0), it.getLong(1), EventType.valueOf(it.getString(2)), it.getString(3).split(',').mapNotNull { code -> EatingReason.entries.firstOrNull { reason -> reason.name == code } }, ActivityKind.entries.firstOrNull { kind -> kind.name == it.getString(4) }, it.getInt(5), it.getInt(6)))
+            while (it.moveToNext()) rows.add(EatingEvent(it.getLong(0), it.getLong(1), EventType.valueOf(it.getString(2)), it.getString(3).split(',').mapNotNull { code -> EatingReason.entries.firstOrNull { reason -> reason.name == code } }, ActivityKind.entries.firstOrNull { kind -> kind.name == it.getString(4) }, it.getInt(5), it.getInt(6), FoodKind.entries.firstOrNull { kind -> kind.name == it.getString(7) }, if (it.isNull(8)) null else it.getInt(8)))
         }
         return HistoryPage(rows.take(30), rows.size > 30)
     }
@@ -93,9 +107,10 @@ class EatingRepository(context: Context) : EatingDataSource {
     override fun count(type: EventType): Long = DatabaseUtils.queryNumEntries(db.readableDatabase, "unhealthy_eating_events", "event_type = ?", arrayOf(type.name))
 }
 
-internal class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 9) {
+internal class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eattrack.db", null, 10) {
     override fun onCreate(db: SQLiteDatabase) {
         createEvents(db)
+        addFoodColumns(db)
         createIndex(db)
         createWeights(db)
         createWeightIndex(db)
@@ -103,6 +118,12 @@ internal class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eat
 
     private fun createEvents(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE unhealthy_eating_events (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at INTEGER NOT NULL, event_type TEXT NOT NULL CHECK (event_type IN ('UNHEALTHY','HEALTHY','AVOIDED','AEROBIC','WATER')), reasons TEXT NOT NULL DEFAULT '', activity_kind TEXT NOT NULL DEFAULT '', minutes INTEGER NOT NULL DEFAULT 0, milliliters INTEGER NOT NULL DEFAULT 0, CHECK ((event_type = 'WATER' AND milliliters > 0) OR (event_type != 'WATER' AND milliliters = 0)), CHECK ((event_type = 'AEROBIC' AND minutes > 0 AND activity_kind != '') OR (event_type != 'AEROBIC' AND minutes = 0 AND activity_kind = '')))")
+    }
+
+    private fun addFoodColumns(db: SQLiteDatabase) {
+        db.execSQL("ALTER TABLE unhealthy_eating_events ADD COLUMN food_kind TEXT NOT NULL DEFAULT '' CHECK (food_kind IN ('','MEAL','SNACK'))")
+        db.execSQL("ALTER TABLE unhealthy_eating_events ADD COLUMN healthy_percent INTEGER CHECK (healthy_percent BETWEEN 0 AND 100)")
+        db.execSQL("UPDATE unhealthy_eating_events SET healthy_percent = CASE event_type WHEN 'HEALTHY' THEN 100 WHEN 'UNHEALTHY' THEN 0 ELSE NULL END")
     }
 
     private fun createIndex(db: SQLiteDatabase) {
@@ -142,5 +163,6 @@ internal class EatingDatabase(context: Context) : SQLiteOpenHelper(context, "eat
             db.execSQL("DROP TABLE events_v6")
             createIndex(db)
         }
+        if (oldVersion < 10) addFoodColumns(db)
     }
 }
