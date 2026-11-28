@@ -82,7 +82,7 @@ fun MetricValue(value: String, color: Color, modifier: Modifier = Modifier) {
 
 @Composable
 fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String = "תקופה") {
-    val weights = listOf(1.3f, 1f, 1f, 1f, 1f, 0.7f)
+    val weights = listOf(1.15f, 0.8f, 1.35f, 0.8f, 1.35f, 0.7f)
     val labels = listOf(firstLabel, "ארוחות בריאות", "ארוחות לא בריאות", "נשנושים בריאים", "נשנושים לא בריאים", "ויתור")
     val colors = listOf(UiColors.healthy, UiColors.unhealthy, UiColors.healthy, UiColors.unhealthy, UiColors.avoided)
     TableFrame {
@@ -94,7 +94,7 @@ fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String =
                 Text(listOf(firstLabel, "ארוחות", "נשנושים", "ויתור")[i], style = UiTypography.tableHeading, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
             }
             TableLine(weights, Modifier.padding(bottom = UiSpacing.normal)) { i ->
-                if (i in 1..4) Text(if (i % 2 == 1) "בריא" else "לא בריא", style = UiTypography.tableHeading, color = colors[i - 1], textAlign = TextAlign.Center)
+                if (i in 1..4) Text(if (i % 2 == 1) "בריא" else "לא\u00A0בריא", style = UiTypography.tableHeading, color = colors[i - 1], textAlign = TextAlign.Center)
             }
         }
         rows.forEach { row ->
