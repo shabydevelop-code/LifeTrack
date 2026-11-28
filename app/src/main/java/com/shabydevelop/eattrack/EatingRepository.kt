@@ -76,8 +76,8 @@ class EatingRepository(context: Context) : EatingDataSource {
 
     private fun foodStats(start: Long, end: Long): FoodStats {
         val groups = mutableMapOf<String, FoodGroup>()
-        db.readableDatabase.rawQuery("SELECT food_kind, COUNT(*), SUM(COALESCE(healthy_percent, CASE event_type WHEN 'HEALTHY' THEN 100 ELSE 0 END)) FROM unhealthy_eating_events WHERE event_type IN ('HEALTHY','UNHEALTHY') AND created_at >= ? AND created_at < ? GROUP BY food_kind", arrayOf(start.toString(), end.toString())).use {
-            while (it.moveToNext()) groups[it.getString(0)] = FoodGroup(it.getLong(1), it.getLong(2))
+        db.readableDatabase.rawQuery("SELECT food_kind, COUNT(*), SUM(COALESCE(healthy_percent, CASE event_type WHEN 'HEALTHY' THEN 100 ELSE 0 END)), SUM(CASE WHEN COALESCE(healthy_percent, CASE event_type WHEN 'HEALTHY' THEN 100 ELSE 0 END) >= 50 THEN 1 ELSE 0 END) FROM unhealthy_eating_events WHERE event_type IN ('HEALTHY','UNHEALTHY') AND created_at >= ? AND created_at < ? GROUP BY food_kind", arrayOf(start.toString(), end.toString())).use {
+            while (it.moveToNext()) groups[it.getString(0)] = FoodGroup(it.getLong(1), it.getLong(2), it.getLong(3))
         }
         return FoodStats(groups["MEAL"] ?: FoodGroup(), groups["SNACK"] ?: FoodGroup(), groups[""] ?: FoodGroup())
     }

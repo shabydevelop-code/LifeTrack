@@ -19,17 +19,6 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -> Unit, addActivity: (ActivityKind, Int) -> Unit, addWater: (Int) -> Unit, busy: Boolean, addFood: (FoodKind, Int) -> Unit, banner: @Composable (androidx.compose.ui.unit.Dp) -> Unit, openWeight: () -> Unit) {
-    var foodKind by remember { mutableStateOf<FoodKind?>(null) }
-    foodKind?.let { kind ->
-        AlertDialog(onDismissRequest = { foodKind = null }, title = { Text(kind.label, style = UiTypography.sectionTitle) },
-            text = { Column(Modifier.visibleVerticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
-                listOf(100,75,50,25,0).forEach { percent ->
-                    AppOutlinedButton(onClick = { foodKind = null; addFood(kind, percent) }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = UiSpacing.touch)) {
-                        Text("$percent% בריאה", style = UiTypography.secondaryAction)
-                    }
-                }
-            } }, confirmButton = {}, dismissButton = { AppTextButton(onClick = { foodKind = null }) { Text("ביטול", style = UiTypography.secondaryAction) } })
-    }
     var activityDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (activityDialog) ActivityDialog(busy, { activityDialog = false }, { kind, minutes -> activityDialog = false; addActivity(kind, minutes) })
     var waterDialog by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
@@ -44,8 +33,10 @@ fun CounterScreen(report: EatingReport, error: Boolean, increment: (EventType) -
         banner(availableHeight)
         Spacer(Modifier.height(UiSpacing.homeBannerGap))
         HabitActions(listOf(
-            HabitActionSpec("ארוחה", UiColors.primary, HabitSymbol.FOOD, !busy) { foodKind = FoodKind.MEAL },
-            HabitActionSpec("נשנוש", UiColors.primary, HabitSymbol.UNHEALTHY, !busy) { foodKind = FoodKind.SNACK },
+            HabitActionSpec("ארוחה בריאה", UiColors.healthy, HabitSymbol.FOOD, !busy) { addFood(FoodKind.MEAL, 100) },
+            HabitActionSpec("ארוחה לא בריאה", UiColors.unhealthy, HabitSymbol.FOOD, !busy) { addFood(FoodKind.MEAL, 0) },
+            HabitActionSpec("נשנוש בריא", UiColors.healthy, HabitSymbol.UNHEALTHY, !busy) { addFood(FoodKind.SNACK, 100) },
+            HabitActionSpec("נשנוש לא בריא", UiColors.unhealthy, HabitSymbol.UNHEALTHY, !busy) { addFood(FoodKind.SNACK, 0) },
             HabitActionSpec("ויתרתי על הפיתוי", UiColors.avoided, HabitSymbol.AVOIDED, !busy) { increment(EventType.AVOIDED) },
             HabitActionSpec("שתיית מים", UiColors.water, HabitSymbol.WATER, !busy) { waterDialog = true },
             HabitActionSpec("פעילות אירובית", UiColors.aerobic, HabitSymbol.ACTIVITY, !busy) { activityDialog = true },

@@ -89,10 +89,10 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
                 }
                 val time = formatTime(event.timestamp)
                 val displayType = if (event.type.isFood) event.foodKind?.label ?: "טרם סווג" else event.type.label
-                val reasons = if (event.type.isFood) listOf("${event.healthyPercent}% בריאה", event.reasons.joinToString(" · ") { it.label }).filter { it.isNotEmpty() }.joinToString(" · ") else if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
+                val reasons = if (event.type.isFood) listOf(if (event.classifiedType == EventType.HEALTHY) "בריא" else "לא בריא", event.reasons.joinToString(" · ") { it.label }).filter { it.isNotEmpty() }.joinToString(" · ") else if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 HistoryCells(timeWidth, time, displayType, reasons.ifEmpty { "—" },
-                    typeColor = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic; EventType.WATER -> UiColors.water },
+                    typeColor = when (event.classifiedType) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic; EventType.WATER -> UiColors.water },
                     modifier = Modifier.weight(1f).clearAndSetSemantics {
                         contentDescription = "$date, שעה $time, $displayType, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
                     })
