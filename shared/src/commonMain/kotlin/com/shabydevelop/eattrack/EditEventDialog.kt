@@ -22,7 +22,7 @@ fun EditEventDialog(event: EatingEvent, model: CounterViewModel, clock: AppClock
     var minutes by remember(event.id) { mutableStateOf(if (event.minutes > 0) event.minutes.toString() else "30") }
     var water by remember(event.id) { mutableStateOf(if (event.milliliters > 0) event.milliliters.toString() else "250") }
     var failed by remember { mutableStateOf(false) }
-    val valid = timestamp <= clock.nowMillis() && (type != EventType.AEROBIC || (minutes.toIntOrNull() ?: 0) > 0) && (type != EventType.WATER || (water.toIntOrNull() ?: 0) > 0)
+    val valid = timestamp <= clock.nowMillis() && (!type.isFood || foodKind != null) && (type != EventType.AEROBIC || (minutes.toIntOrNull() ?: 0) > 0) && (type != EventType.WATER || (water.toIntOrNull() ?: 0) > 0)
     AlertDialog(onDismissRequest = { if (!model.busy) dismiss() },
         title = { Text("עריכת דיווח", style = UiTypography.sectionTitle) },
         text = {
@@ -39,7 +39,6 @@ fun EditEventDialog(event: EatingEvent, model: CounterViewModel, clock: AppClock
                 if (type.isFood) {
                     Text("סוג אכילה")
                     Column(Modifier.selectableGroup()) {
-                        EditChoice("טרם סווג", foodKind == null, !model.busy) { foodKind = null }
                         FoodKind.entries.forEach { kind -> EditChoice(kind.label, foodKind == kind, !model.busy) { foodKind = kind } }
                     }
                 }
