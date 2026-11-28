@@ -80,23 +80,33 @@ fun MetricValue(value: String, color: Color, modifier: Modifier = Modifier) {
     Text(value, modifier = modifier, color = color, style = UiTypography.tableCell, textAlign = TextAlign.Center)
 }
 
+private fun FoodGroup.percentText(): String = average?.let { "$it%" } ?: "—"
+private fun FoodGroup.summaryText(): String = "$count · ${percentText()}"
+
 @Composable
-fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean) {
-    val weights = if (showRanges) listOf(1.5f, 1f, 1.15f, 1f) else listOf(1f, 1f, 1.15f, 1f)
+fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String = "תקופה") {
+    val weights = listOf(1.4f, 1f, 1f, 1f, 0.8f)
+    val labels = listOf(firstLabel, "ארוחות", "נשנושים", "בריאות", "ויתור")
+    val neutral = MaterialTheme.colorScheme.onSurface
     TableFrame {
-        TableHeading(listOf("תקופה") + reportLabels, weights)
+        TableHeading(labels, weights)
         rows.forEach { row ->
+            val food = row.food
+            val values = listOf(food.meals.summaryText(), food.snacks.summaryText(), food.overall.percentText(), row.counts[2].toString())
             HorizontalDivider()
             TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
-                contentDescription = row.label + (if (showRanges) ", " + row.range else "") + ", " + reportLabels.zip(row.counts).joinToString(", ") { (label, count) -> "$label: $count" }
+                contentDescription = row.label + (if (showRanges) ", " + row.range else "") +
+                    ", ארוחות: ${food.meals.count}, בריאות ארוחות: ${food.meals.percentText()}, נשנושים: ${food.snacks.count}, בריאות נשנושים: ${food.snacks.percentText()}, בריאות כללית: ${food.overall.percentText()}, טרם סווגו: ${food.unclassified.count}, ויתורים: ${row.counts[2]}"
             }) { i ->
                 if (i == 0) Column {
                     Text(row.label, style = UiTypography.tableCell)
                     if (showRanges) Text(row.range, style = UiTypography.supporting)
-                } else MetricValue(row.counts[i-1].toString(), reportColors[i-1])
+                    if (food.unclassified.count > 0) Text("טרם סווגו: ${food.unclassified.count}", style = UiTypography.supporting)
+                } else MetricValue(values[i-1], when(i) { 3 -> UiColors.healthy; 4 -> UiColors.avoided; else -> neutral })
             }
         }
     }
+    Text("ארוחות ונשנושים: כמות · ממוצע בריאות. הממוצע הכללי כולל גם דיווחים שטרם סווגו.", style = UiTypography.supporting)
 }
 
 private data class DailySummaryRow(val label: String, val value: String, val color: Color)
@@ -104,8 +114,10 @@ private data class DailySummaryRow(val label: String, val value: String, val col
 @Composable
 fun DailySummary(report: EatingReport) {
     val rows = listOf(
-        DailySummaryRow("אכילה בריאה", report.healthyToday.toString(), UiColors.healthy),
-        DailySummaryRow("אכילה לא בריאה", report.today.toString(), UiColors.unhealthy),
+        DailySummaryRow("ארוחות", report.foodToday.meals.summaryText(), MaterialTheme.colorScheme.onSurface),
+        DailySummaryRow("נשנושים", report.foodToday.snacks.summaryText(), MaterialTheme.colorScheme.onSurface),
+        DailySummaryRow("בריאות ממוצעת", report.foodToday.overall.percentText(), UiColors.healthy),
+        DailySummaryRow("טרם סווגו", report.foodToday.unclassified.count.toString(), MaterialTheme.colorScheme.onSurface),
         DailySummaryRow("ויתור על פיתוי", report.avoidedToday.toString(), UiColors.avoided),
         DailySummaryRow("שתיית מים", "${report.water.today.milliliters} מ״ל", UiColors.water),
         DailySummaryRow("פעילות אירובית", "${report.activity.today.minutes} דק׳", UiColors.aerobic)

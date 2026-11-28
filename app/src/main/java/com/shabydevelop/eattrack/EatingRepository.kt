@@ -71,8 +71,16 @@ class EatingRepository(context: Context) : EatingDataSource {
         PlatformReportCalendar.snapshot(), countRange = ::countRange, count = ::count,
         first = db.readableDatabase.rawQuery("SELECT MIN(created_at) FROM unhealthy_eating_events WHERE event_type IN ('HEALTHY','UNHEALTHY','AVOIDED')", null).use {
             if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else null
-        }, formatDate = PlatformDateTime::date, activityStats = ::activityStats, waterStats = ::waterStats
+        }, formatDate = PlatformDateTime::date, activityStats = ::activityStats, waterStats = ::waterStats, foodStats = ::foodStats
     )
+
+    private fun foodStats(start: Long, end: Long): FoodStats {
+        val groups = mutableMapOf<String, FoodGroup>()
+        db.readableDatabase.rawQuery("SELECT food_kind, COUNT(*), SUM(COALESCE(healthy_percent, CASE event_type WHEN 'HEALTHY' THEN 100 ELSE 0 END)) FROM unhealthy_eating_events WHERE event_type IN ('HEALTHY','UNHEALTHY') AND created_at >= ? AND created_at < ? GROUP BY food_kind", arrayOf(start.toString(), end.toString())).use {
+            while (it.moveToNext()) groups[it.getString(0)] = FoodGroup(it.getLong(1), it.getLong(2))
+        }
+        return FoodStats(groups["MEAL"] ?: FoodGroup(), groups["SNACK"] ?: FoodGroup(), groups[""] ?: FoodGroup())
+    }
 
     private fun waterStats(start: Long, end: Long = PlatformClock.nowMillis() + 1): WaterStats =
         db.readableDatabase.rawQuery("SELECT COUNT(*), COALESCE(SUM(milliliters),0) FROM unhealthy_eating_events WHERE event_type = 'WATER' AND created_at >= ? AND created_at < ?", arrayOf(start.toString(), end.toString())).use { it.moveToFirst(); WaterStats(it.getLong(0), it.getLong(1)) }

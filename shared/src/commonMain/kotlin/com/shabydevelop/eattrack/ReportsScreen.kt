@@ -27,25 +27,8 @@ fun ReportsScreen(report: EatingReport, error: Boolean) {
 
 @Composable
 private fun EatingChart(days: List<DayCount>) {
-    val weights = listOf(1f, 1f, 1.15f, 1f)
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("דפוסי אכילה – 7 ימים")
-        OutlinedCard(Modifier.fillMaxWidth()) {
-            TableHeading(listOf("תאריך") + reportLabels, weights)
-            days.forEach { day ->
-                val counts = listOf(day.healthy, day.count, day.avoided)
-                HorizontalDivider()
-                TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
-                    contentDescription = day.label + ", " + reportLabels.zip(counts).joinToString(", ") { (label, count) -> "$label: $count" }
-                }) { i ->
-                    if (i == 0) Text(day.label, style = UiTypography.tableCell)
-                    else {
-                        val count = counts[i - 1]
-                        val color = reportColors[i - 1]
-                        MetricValue(count.toString(), color)
-                    }
-                }
-            }
-        }
+        PeriodTable(days.map { PeriodRow(it.label, "", listOf(it.healthy, it.count, it.avoided), it.food) }, false, "תאריך")
     }
 }
