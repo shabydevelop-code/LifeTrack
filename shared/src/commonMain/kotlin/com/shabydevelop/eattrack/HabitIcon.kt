@@ -19,8 +19,8 @@ import androidx.compose.ui.semantics.semantics
 internal enum class HabitSymbol { FOOD, UNHEALTHY, AVOIDED, WATER, ACTIVITY, WEIGHT, PRIVACY }
 
 @Composable
-internal fun HabitIcon(symbol: HabitSymbol, color: Color) {
-    Canvas(Modifier.size(UiSpacing.large)) {
+internal fun HabitIcon(symbol: HabitSymbol, color: Color, iconSize: androidx.compose.ui.unit.Dp = UiSpacing.large) {
+    Canvas(Modifier.size(iconSize)) {
         val u = size.width / 24f
         fun line(x1: Float, y1: Float, x2: Float, y2: Float) =
             drawLine(color, Offset(x1*u,y1*u), Offset(x2*u,y2*u), 1.8f*u, StrokeCap.Round)
