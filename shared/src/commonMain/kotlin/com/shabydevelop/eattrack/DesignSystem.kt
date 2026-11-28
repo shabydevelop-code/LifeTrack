@@ -68,6 +68,12 @@ object UiColors {
     val avoided = Color(0xFF1D4ED8)
 }
 
+@Composable
+fun TableHeaderText(label: String, modifier: Modifier = Modifier, textAlign: androidx.compose.ui.text.style.TextAlign = androidx.compose.ui.text.style.TextAlign.Start) {
+    Text(label, modifier = modifier, style = UiTypography.tableHeading,
+        color = MaterialTheme.colorScheme.onSurface, textAlign = textAlign)
+}
+
 object UiTypography {
     private fun style(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) =
         TextStyle(fontFamily = FontFamily.SansSerif, fontSize = size.sp, lineHeight = line.sp, fontWeight = weight)

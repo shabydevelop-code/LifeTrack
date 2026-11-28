@@ -72,8 +72,8 @@ fun WeightScreen(clock: AppClock, load: suspend (Int, WeightEntry?, (WeightDataS
         if (!busy && !error && entries.isEmpty()) item { Text("אין שקילות בתקופה שנבחרה") }
         if (entries.isNotEmpty()) item {
             Row(Modifier.fillMaxWidth().tableSegment(top = true).tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }, verticalAlignment = Alignment.CenterVertically) {
-                TableLine(listOf(2f,1f), Modifier.weight(1f)) { i -> Text(if (i == 0) "תאריך ושעה" else "ק״ג", style = UiTypography.tableHeading) }
-                Text("פעולות", Modifier.width(UiSpacing.touch * 2), style = UiTypography.tableHeading, textAlign = TextAlign.Center)
+                TableLine(listOf(2f,1f), Modifier.weight(1f)) { i -> TableHeaderText(if (i == 0) "תאריך ושעה" else "ק״ג") }
+                TableHeaderText("פעולות", Modifier.width(UiSpacing.touch * 2), textAlign = TextAlign.Center)
             }
         }
         itemsIndexed(entries, key = { _, entry -> entry.id }) { index, entry ->

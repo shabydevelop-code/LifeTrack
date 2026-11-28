@@ -71,7 +71,7 @@ fun Modifier.tableSegment(top: Boolean = false, bottom: Boolean = false): Modifi
 @Composable
 fun TableHeading(labels: List<String>, weights: List<Float>) {
     TableLine(weights, Modifier.tableHeaderBackground().padding(vertical = UiSpacing.normal).semantics { heading() }) { i ->
-        Text(labels[i], style = UiTypography.tableHeading, color = Color.Black, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
+        TableHeaderText(labels[i], textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
     }
 }
 
@@ -91,10 +91,10 @@ fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String =
             contentDescription = "$firstLabel, ארוחות: בריא ולא בריא, נשנושים: בריא ולא בריא, ויתור"
         }) {
             TableLine(listOf(weights[0], weights[1] + weights[2], weights[3] + weights[4], weights[5]), Modifier.padding(top = UiSpacing.normal, bottom = UiSpacing.small)) { i ->
-                Text(listOf(firstLabel, "ארוחות", "נשנושים", "ויתור")[i], style = UiTypography.tableHeading, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
+                TableHeaderText(listOf(firstLabel, "ארוחות", "נשנושים", "ויתור")[i], textAlign = if (i == 0) TextAlign.Start else TextAlign.Center)
             }
             TableLine(weights, Modifier.padding(bottom = UiSpacing.normal)) { i ->
-                if (i in 1..4) Text(if (i % 2 == 1) "בריא" else "לא\u00A0בריא", style = UiTypography.tableHeading, color = colors[i - 1], textAlign = TextAlign.Center)
+                if (i in 1..4) TableHeaderText(if (i % 2 == 1) "בריא" else "לא\u00A0בריא", textAlign = TextAlign.Center)
             }
         }
         rows.forEach { row ->
