@@ -56,7 +56,7 @@ fun NavigationShell(model: CounterViewModel, route: String, drawer: DrawerState,
         drawerContent = {
             ModalDrawerSheet(windowInsets = WindowInsets(0, 0, 0, 0)) {
                 Text("מעקב אורח חיים", Modifier.padding(20.dp).semantics { heading() }, style = UiTypography.screenTitle)
-                listOf("home" to "מסך ראשי", "reports" to "דוחות", "history" to "היסטוריית דיווחים", "weight" to "מעקב משקל", "settings" to "הגדרות").forEach { (target, label) ->
+                listOf("home" to "מסך ראשי", "reports" to "דוחות", "history" to "היסטוריית דיווחים", "weight" to "מעקב משקל", "settings" to "הגדרות", "about" to "אודות").forEach { (target, label) ->
                     NavigationDrawerItem(label = { Text(label, style = UiTypography.body) },
                         icon = if (target == "weight" || target == "settings") ({ PrivacyIcon(color = LocalContentColor.current) }) else null, selected = route == target,
                         onClick = {
@@ -81,6 +81,7 @@ fun NavigationShell(model: CounterViewModel, route: String, drawer: DrawerState,
                     "reports" -> "דוחות"
                     "history" -> "היסטוריית דיווחים"
                     "settings" -> "הגדרות"
+                    "about" -> "אודות"
                     "weight" -> "מעקב משקל"
                     else -> null
                 }
