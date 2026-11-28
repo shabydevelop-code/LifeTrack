@@ -88,7 +88,7 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
                     Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().tableHeaderBackground().padding(horizontal = UiSpacing.normal, vertical = UiSpacing.small).semantics { heading() })
                 }
                 val time = formatTime(event.timestamp)
-                val displayType = if (event.type.isFood) event.foodKind?.label ?: "טרם סווג" else event.type.label
+                val displayType = if (event.type.isFood) event.foodKind?.label ?: "אכילה" else event.type.label
                 val reasons = if (event.type.isFood) listOf(if (event.classifiedType == EventType.HEALTHY) "בריא" else "לא בריא", event.reasons.joinToString(" · ") { it.label }).filter { it.isNotEmpty() }.joinToString(" · ") else if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 HistoryCells(timeWidth, time, displayType, reasons.ifEmpty { "—" },

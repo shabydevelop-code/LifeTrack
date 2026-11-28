@@ -103,13 +103,12 @@ fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String =
             HorizontalDivider()
             TableLine(weights, Modifier.padding(vertical = UiSpacing.normal).clearAndSetSemantics {
                 contentDescription = row.label + (if (showRanges) ", " + row.range else "") + ", " +
-                    values.mapIndexed { index, value -> "${labels[index + 1]}: $value" }.joinToString(", ") +
-                    ", טרם סווגו: ${food.unclassified.count}"
+                    values.mapIndexed { index, value -> "${labels[index + 1]}: $value" }.joinToString(", ")
             }) { i ->
                 if (i == 0) Column {
                     Text(row.label, style = UiTypography.tableCell)
                     if (showRanges) Text(row.range, style = UiTypography.supporting)
-                    if (food.unclassified.count > 0) Text("טרם סווגו: ${food.unclassified.count}", style = UiTypography.supporting)
+
                 } else MetricValue(values[i - 1].toString(), colors[i - 1])
             }
         }
@@ -125,7 +124,7 @@ fun DailySummary(report: EatingReport) {
     val rows = buildList {
         add(DailySummaryRow("ארוחות", food.meals.healthyCount.toString(), neutral, food.meals.unhealthyCount.toString()))
         add(DailySummaryRow("נשנושים", food.snacks.healthyCount.toString(), neutral, food.snacks.unhealthyCount.toString()))
-        if (food.unclassified.count > 0) add(DailySummaryRow("טרם סווגו", food.unclassified.healthyCount.toString(), neutral, food.unclassified.unhealthyCount.toString()))
+
         add(DailySummaryRow("ויתור על פיתוי", report.avoidedToday.toString(), UiColors.avoided))
         add(DailySummaryRow("שתיית מים", "${report.water.today.milliliters} מ״ל", UiColors.water))
         add(DailySummaryRow("פעילות אירובית", "${report.activity.today.minutes} דק׳", UiColors.aerobic))
