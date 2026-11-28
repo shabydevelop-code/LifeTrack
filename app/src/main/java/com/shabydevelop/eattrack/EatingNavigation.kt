@@ -43,9 +43,9 @@ internal fun EatingNavigation(model: CounterViewModel) {
                     composable("history") { HistoryScreen(model, PlatformDateTime::date, PlatformDateTime::time) { event, dismiss -> EditEventDialog(event, model, PlatformClock, { timestamp, enabled, change -> DateTimeFields(timestamp, enabled, change) }, dismiss) } }
                     composable("about") { AboutScreen(version) {
                         androidx.compose.foundation.Image(
-                            painter = androidx.compose.ui.res.painterResource(R.drawable.ic_launcher_foreground),
+                            painter = androidx.compose.ui.res.painterResource(R.drawable.lifetrack_logo),
                             contentDescription = null,
-                            modifier = Modifier.size(UiSpacing.aboutLogo).background(UiColors.primary, UiShapes.control)
+                            modifier = Modifier.size(UiSpacing.aboutLogo)
                         )
                     } }
                     composable("settings") { ProtectedArea { SettingsScreen(model) } }
