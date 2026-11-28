@@ -90,7 +90,7 @@ fun NavigationShell(model: CounterViewModel, route: String, drawer: DrawerState,
                 Box(Modifier.weight(1f)) { destination() }
             }
         }
-        ConfettiEffect(model.celebrationSequence, when (model.celebrationType) { EventType.HEALTHY -> ConfettiStyle.Healthy; EventType.AEROBIC -> ConfettiStyle.Aerobic; else -> ConfettiStyle.Avoided }, Modifier.matchParentSize()) { animationsEnabled() }
+        ConfettiEffect(model.celebrationSequence, when (model.celebrationType) { EventType.HEALTHY -> ConfettiStyle.Healthy; EventType.AEROBIC -> ConfettiStyle.Aerobic; EventType.WATER -> ConfettiStyle.Water; else -> ConfettiStyle.Avoided }, Modifier.matchParentSize()) { animationsEnabled() }
         AppFeedbackHost(feedbackHost, feedbackColor, Modifier.align(Alignment.BottomCenter).padding(UiSpacing.screen))
         }
     }
