@@ -16,6 +16,8 @@ import androidx.compose.ui.text.input.KeyboardType
 fun EditEventDialog(event: EatingEvent, model: CounterViewModel, clock: AppClock, dateTimeFields: @Composable (Long, Boolean, (Long) -> Unit) -> Unit, dismiss: () -> Unit) {
     var timestamp by remember(event.id) { mutableLongStateOf(event.timestamp) }
     var type by remember(event.id) { mutableStateOf(event.type) }
+    var foodKind by remember(event.id) { mutableStateOf(event.foodKind) }
+    var percent by remember(event.id) { mutableIntStateOf(event.healthyPercent ?: 100) }
     var reasons by remember(event.id) { mutableStateOf(event.reasons.toSet()) }
     var activity by remember(event.id) { mutableStateOf(event.activity ?: ActivityKind.WALK) }
     var minutes by remember(event.id) { mutableStateOf(if (event.minutes > 0) event.minutes.toString() else "30") }
@@ -35,11 +37,22 @@ fun EditEventDialog(event: EatingEvent, model: CounterViewModel, clock: AppClock
                         }
                     }
                 }
-                if (type == EventType.UNHEALTHY || type == EventType.AVOIDED) {
+                if (type.isFood) {
+                    Text("סוג אכילה")
+                    Column(Modifier.selectableGroup()) {
+                        EditChoice("טרם סווג", foodKind == null, !model.busy) { foodKind = null }
+                        FoodKind.entries.forEach { kind -> EditChoice(kind.label, foodKind == kind, !model.busy) { foodKind = kind } }
+                    }
+                    Text("אחוז בריא")
+                    Column(Modifier.selectableGroup()) {
+                        listOf(100,75,50,25,0).forEach { p -> EditChoice("$p%", percent == p, !model.busy) { percent = p } }
+                    }
+                }
+                if (type.isFood || type == EventType.AVOIDED) {
                     Text("סיבת הדיווח", style = UiTypography.tableHeading)
                     Column(Modifier.selectableGroup()) {
                         EditChoice("ללא סיבה", reasons.isEmpty(), !model.busy) { reasons = emptySet() }
-                        (reasonOptions(type) + reasons).distinct().forEach { reason ->
+                        (reasonOptions(if (type.isFood) EventType.UNHEALTHY else type) + reasons).distinct().forEach { reason ->
                             EditChoice(reason.label, reason in reasons, !model.busy) { reasons = setOf(reason) }
                         }
                     }
@@ -60,7 +73,7 @@ fun EditEventDialog(event: EatingEvent, model: CounterViewModel, clock: AppClock
         },
         confirmButton = { AppTextButton(enabled = valid && !model.busy, onClick = {
             failed = false
-            model.updateEvent(event.copy(timestamp = timestamp, type = type, reasons = reasons.toList(), activity = if (type == EventType.AEROBIC) activity else null, minutes = if (type == EventType.AEROBIC) minutes.toInt() else 0, milliliters = if (type == EventType.WATER) water.toInt() else 0)) { ok -> if (ok) dismiss() else failed = true }
+            model.updateEvent(event.copy(timestamp = timestamp, type = if (type.isFood) (if (percent == 100) EventType.HEALTHY else EventType.UNHEALTHY) else type, foodKind = if (type.isFood) foodKind else null, healthyPercent = if (type.isFood) percent else null, reasons = reasons.toList(), activity = if (type == EventType.AEROBIC) activity else null, minutes = if (type == EventType.AEROBIC) minutes.toInt() else 0, milliliters = if (type == EventType.WATER) water.toInt() else 0)) { ok -> if (ok) dismiss() else failed = true }
         }) { Text("שמירה", style = UiTypography.secondaryAction) } },
         dismissButton = { AppTextButton(enabled = !model.busy, onClick = dismiss) { Text("ביטול", style = UiTypography.secondaryAction) } })
 }
