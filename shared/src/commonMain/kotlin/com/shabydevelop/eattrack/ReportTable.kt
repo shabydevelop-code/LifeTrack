@@ -106,33 +106,35 @@ fun PeriodTable(rows: List<PeriodRow>, showRanges: Boolean, firstLabel: String =
     }
 }
 
-private data class DailySummaryRow(val label: String, val value: String, val color: Color)
+private data class DailySummaryRow(val label: String, val value: String, val color: Color, val unhealthy: String? = null)
 
 @Composable
 fun DailySummary(report: EatingReport) {
     val food = report.foodToday
     val neutral = MaterialTheme.colorScheme.onSurface
     val rows = buildList {
-        add(DailySummaryRow("ארוחות בריאות", food.meals.healthyCount.toString(), UiColors.healthy))
-        add(DailySummaryRow("ארוחות לא בריאות", food.meals.unhealthyCount.toString(), UiColors.unhealthy))
-        add(DailySummaryRow("נשנושים בריאים", food.snacks.healthyCount.toString(), UiColors.healthy))
-        add(DailySummaryRow("נשנושים לא בריאים", food.snacks.unhealthyCount.toString(), UiColors.unhealthy))
-        if (food.unclassified.count > 0) add(DailySummaryRow("טרם סווגו", food.unclassified.count.toString(), neutral))
-        add(DailySummaryRow("סה״כ אכילה", food.overall.count.toString(), neutral))
+        add(DailySummaryRow("ארוחות", food.meals.healthyCount.toString(), neutral, food.meals.unhealthyCount.toString()))
+        add(DailySummaryRow("נשנושים", food.snacks.healthyCount.toString(), neutral, food.snacks.unhealthyCount.toString()))
+        if (food.unclassified.count > 0) add(DailySummaryRow("טרם סווגו", food.unclassified.healthyCount.toString(), neutral, food.unclassified.unhealthyCount.toString()))
         add(DailySummaryRow("ויתור על פיתוי", report.avoidedToday.toString(), UiColors.avoided))
         add(DailySummaryRow("שתיית מים", "${report.water.today.milliliters} מ״ל", UiColors.water))
         add(DailySummaryRow("פעילות אירובית", "${report.activity.today.minutes} דק׳", UiColors.aerobic))
     }
-    val weights = listOf(2f, 1f)
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
+    val weights = listOf(2f, 1f, 1f)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
         SectionHeader("סיכום יומי")
         TableFrame {
-            TableHeading(listOf("סוג דיווח", "כמות"), weights)
+            TableHeading(listOf("סוג דיווח", "בריא", "לא בריא"), weights)
             rows.forEach { row ->
                 HorizontalDivider()
-                TableLine(weights, Modifier.padding(vertical = UiSpacing.small).clearAndSetSemantics { contentDescription = "${row.label}: ${row.value}" }) { i ->
-                    if (i == 0) Text(row.label, color = row.color, style = UiTypography.tableCell)
-                    else MetricValue(row.value, row.color)
+                TableLine(if (row.unhealthy == null) listOf(2f, 2f) else weights, Modifier.padding(vertical = UiSpacing.small).clearAndSetSemantics {
+                    contentDescription = if (row.unhealthy == null) "${row.label}: ${row.value}" else "${row.label}, בריא: ${row.value}, לא בריא: ${row.unhealthy}"
+                }) { i ->
+                    when (i) {
+                        0 -> Text(row.label, color = row.color, style = UiTypography.tableCell)
+                        1 -> MetricValue(row.value, if (row.unhealthy == null) row.color else UiColors.healthy)
+                        2 -> MetricValue(row.unhealthy.orEmpty(), UiColors.unhealthy)
+                    }
                 }
             }
         }
