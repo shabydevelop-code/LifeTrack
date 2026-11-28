@@ -64,3 +64,5 @@
 - לבצע בדיקת מכשיר ונגישות לפני מעבר לשלב הבא.
 - להבחין במפורש בין שינוי קוד, קומפילציה מוצלחת ובדיקת מכשיר בפועל.
 - לתעד מגבלות והחלטות שלא אושרו במפורש; אין להציג בדיקות שלא בוצעו כאילו עברו.
+
+- After a successful requested build, verify the published release and provide a direct download link to its `LifeTrack.apk` asset. Do not present an older APK as the new build; if publication is pending or failed, state that explicitly.
