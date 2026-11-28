@@ -111,7 +111,7 @@ fun DailySummary(report: EatingReport) {
         DailySummaryRow("פעילות אירובית", "${report.activity.today.minutes} דק׳", UiColors.aerobic)
     )
     val weights = listOf(2f, 1f)
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.small)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(UiSpacing.normal)) {
         SectionHeader("סיכום יומי")
         TableFrame {
             TableHeading(listOf("סוג דיווח", "ערך"), weights)
