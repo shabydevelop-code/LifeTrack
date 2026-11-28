@@ -82,12 +82,13 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
                     Text(date, style = UiTypography.dateHeading, modifier = Modifier.fillMaxWidth().tableHeaderBackground().padding(horizontal = UiSpacing.normal, vertical = UiSpacing.small).semantics { heading() })
                 }
                 val time = formatTime(event.timestamp)
-                val reasons = if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
+                val displayType = if (event.type.isFood) event.foodKind?.label ?: "טרם סווג" else event.type.label
+                val reasons = if (event.type.isFood) listOf("${event.healthyPercent}% בריאה", event.reasons.joinToString(" · ") { it.label }).filter { it.isNotEmpty() }.joinToString(" · ") else if (event.type == EventType.AEROBIC) "${event.activity?.label ?: ""} · ${event.minutes} דקות" else if (event.type == EventType.WATER) "${event.milliliters} מ״ל" else event.reasons.joinToString(" · ") { it.label }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                HistoryCells(timeWidth, time, event.type.label, reasons.ifEmpty { "—" },
+                HistoryCells(timeWidth, time, displayType, reasons.ifEmpty { "—" },
                     typeColor = when (event.type) { EventType.HEALTHY -> reportColors[0]; EventType.UNHEALTHY -> reportColors[1]; EventType.AVOIDED -> reportColors[2]; EventType.AEROBIC -> UiColors.aerobic; EventType.WATER -> UiColors.water },
                     modifier = Modifier.weight(1f).clearAndSetSemantics {
-                        contentDescription = "$date, שעה $time, ${event.type.label}, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
+                        contentDescription = "$date, שעה $time, $displayType, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
                     })
                 TableRowActions("דיווח ${event.type.label}, $date, $time", !model.busy, { pendingEdit = event }, { pendingDelete = event })
                 }
