@@ -32,7 +32,7 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
     var pendingDelete by remember { mutableStateOf<EatingEvent?>(null) }
     var loadedSequence by remember { mutableLongStateOf(model.successSequence) }
     val days = period.takeIf { it > 0 }
-    val eventType = when (type) { 1 -> EventType.HEALTHY; 2 -> EventType.UNHEALTHY; 3 -> EventType.AVOIDED; 4 -> EventType.AEROBIC; 5 -> EventType.WATER; else -> null }
+    val eventType = when (type) { 3 -> EventType.AVOIDED; 4 -> EventType.AEROBIC; 5 -> EventType.WATER; else -> null }
     LaunchedEffect(period, type, model.successSequence, pageCount, retry) {
         if (loadedSequence != model.successSequence) {
             loadedSequence = model.successSequence
@@ -41,7 +41,13 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
         loading = true
         error = false
         try {
-            val page = model.historyPage(days, eventType, if (pageCount == 1) null else rows.lastOrNull())
+            val before = if (pageCount == 1) null else rows.lastOrNull()
+            val page = when (type) {
+                1 -> model.foodHistoryPage(days, FoodKind.MEAL, before)
+                2 -> model.foodHistoryPage(days, FoodKind.SNACK, before)
+                6 -> model.foodHistoryPage(days, null, before)
+                else -> model.historyPage(days, eventType, before)
+            }
             rows = if (pageCount == 1) page.events else rows + page.events
             more = page.hasMore
         } catch (e: RepositoryFailure) { error = true }
@@ -61,7 +67,7 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
             }
         }
         val types: @Composable () -> Unit = {
-            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "בריאה", 2 to "לא בריאה", 3 to "ויתור", 4 to "אירובית", 5 to "מים"), type) {
+            HistoryFilter("סוג", listOf(0 to "הכל", 1 to "ארוחות", 2 to "נשנושים", 6 to "טרם סווגו", 3 to "ויתור", 4 to "אירובית", 5 to "מים"), type) {
                 type = it; pageCount = 1; rows = emptyList(); more = false; loading = true
             }
         }
@@ -90,7 +96,7 @@ fun HistoryScreen(model: CounterViewModel, formatDate: (Long) -> String, formatT
                     modifier = Modifier.weight(1f).clearAndSetSemantics {
                         contentDescription = "$date, שעה $time, $displayType, " + if (reasons.isEmpty()) "לא צוינו סיבות" else "פרטים: $reasons"
                     })
-                TableRowActions("דיווח ${event.type.label}, $date, $time", !model.busy, { pendingEdit = event }, { pendingDelete = event })
+                TableRowActions("דיווח $displayType, $date, $time", !model.busy, { pendingEdit = event }, { pendingDelete = event })
                 }
                 if (index != rows.lastIndex) HorizontalDivider()
                 }

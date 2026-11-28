@@ -130,6 +130,9 @@ class CounterViewModel(private val repository: EatingDataSource, private val clo
     suspend fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage =
         withContext(ioDispatcher) { repository.historyPage(days, type, before) }
 
+    suspend fun foodHistoryPage(days: Int?, kind: FoodKind?, before: EatingEvent?): HistoryPage =
+        withContext(ioDispatcher) { repository.foodHistoryPage(days, kind, before) }
+
     private fun mutate(type: EventType? = null, action: suspend () -> String) {
         if (busy) return
         busy = true

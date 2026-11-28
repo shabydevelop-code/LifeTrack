@@ -88,7 +88,13 @@ class EatingRepository(context: Context) : EatingDataSource {
     private fun activityStats(start: Long, end: Long = PlatformClock.nowMillis() + 1): ActivityStats =
         db.readableDatabase.rawQuery("SELECT COUNT(*), COALESCE(SUM(minutes),0) FROM unhealthy_eating_events WHERE event_type = 'AEROBIC' AND created_at >= ? AND created_at < ?", arrayOf(start.toString(), end.toString())).use { it.moveToFirst(); ActivityStats(it.getLong(0), it.getLong(1)) }
 
-    override fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage {
+    override fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage =
+        queryHistory(days, type, before, false, null)
+
+    override fun foodHistoryPage(days: Int?, kind: FoodKind?, before: EatingEvent?): HistoryPage =
+        queryHistory(days, null, before, true, kind)
+
+    private fun queryHistory(days: Int?, type: EventType?, before: EatingEvent?, foodOnly: Boolean, kind: FoodKind?): HistoryPage {
         val clauses = mutableListOf<String>()
         val args = mutableListOf<String>()
         if (days != null) {
@@ -96,6 +102,10 @@ class EatingRepository(context: Context) : EatingDataSource {
             clauses.add("created_at >= ?"); args.add(start.toString())
         }
         if (type != null) { clauses.add("event_type = ?"); args.add(type.name) }
+        if (foodOnly) {
+            clauses.add("event_type IN ('HEALTHY','UNHEALTHY') AND food_kind = ?")
+            args.add(kind?.name ?: "")
+        }
         if (before != null) {
             clauses.add("(created_at > ? OR (created_at = ? AND id > ?))")
             args.add(before.timestamp.toString()); args.add(before.timestamp.toString()); args.add(before.id.toString())

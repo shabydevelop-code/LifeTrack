@@ -13,5 +13,7 @@ internal class SafeEatingDataSource(private val delegate: EatingDataSource) : Ea
     override fun report() = databaseOperation { delegate.report() }
     override fun historyPage(days: Int?, type: EventType?, before: EatingEvent?) =
         databaseOperation { delegate.historyPage(days, type, before) }
+    override fun foodHistoryPage(days: Int?, kind: FoodKind?, before: EatingEvent?) =
+        databaseOperation { delegate.foodHistoryPage(days, kind, before) }
     override fun count(type: EventType) = databaseOperation { delegate.count(type) }
 }

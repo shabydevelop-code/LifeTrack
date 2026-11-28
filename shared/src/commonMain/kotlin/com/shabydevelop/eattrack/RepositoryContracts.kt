@@ -10,6 +10,7 @@ interface EatingDataSource {
     fun reset()
     fun report(): EatingReport
     fun historyPage(days: Int?, type: EventType?, before: EatingEvent?): HistoryPage
+    fun foodHistoryPage(days: Int?, kind: FoodKind?, before: EatingEvent?): HistoryPage
     fun count(type: EventType): Long
 }
 
