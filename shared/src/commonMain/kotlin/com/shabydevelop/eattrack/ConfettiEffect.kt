@@ -16,6 +16,7 @@ import kotlin.random.Random
 data class ConfettiStyle(val durationMillis: Int, val particleCount: Int, val colors: List<Color>) {
     companion object {
         val Aerobic = ConfettiStyle(1000, 40, listOf(UiColors.aerobic, Color(0xFFA855F7), Color(0xFFC084FC)))
+        val Water = ConfettiStyle(800, 28, listOf(UiColors.water, Color(0xFF38BDF8), Color(0xFF67E8F9)))
         val Healthy = ConfettiStyle(800, 28, listOf(UiColors.healthy, Color(0xFF22C55E), Color(0xFF86EFAC)))
         val Avoided = ConfettiStyle(1500, 65, listOf(UiColors.healthy, UiColors.avoided, Color(0xFFF59E0B), Color(0xFFDB2777), Color(0xFF9333EA)))
     }
