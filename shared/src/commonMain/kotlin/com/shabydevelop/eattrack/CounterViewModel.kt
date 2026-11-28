@@ -73,6 +73,7 @@ class CounterViewModel(private val repository: EatingDataSource, private val clo
     }
     fun addWater(milliliters: Int) = mutate(EventType.WATER) {
         repository.addEvent(EventType.WATER, milliliters = milliliters)
+        withContext(Dispatchers.Main) { celebrate(EventType.WATER) }
         "דיווח שתיית מים נשמר"
     }
     fun increment(type: EventType) {
