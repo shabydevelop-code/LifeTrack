@@ -45,7 +45,7 @@ internal fun EatingNavigation(model: CounterViewModel) {
                         androidx.compose.foundation.Image(
                             painter = androidx.compose.ui.res.painterResource(R.drawable.ic_launcher_foreground),
                             contentDescription = null,
-                            modifier = Modifier.size(UiSpacing.homeBannerMinHeight).background(UiColors.primary, UiShapes.control)
+                            modifier = Modifier.size(UiSpacing.aboutLogo).background(UiColors.primary, UiShapes.control)
                         )
                     } }
                     composable("settings") { ProtectedArea { SettingsScreen(model) } }
