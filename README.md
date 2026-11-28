@@ -24,15 +24,21 @@ Application ID: `com.shabydevelop.eattrack`. Preserve this ID and signing certif
 
 ## Wireless Android updates (Windows PowerShell)
 
-ADB is installed at `C:\platform-tools\adb.exe`. For an already paired device, enable Wireless debugging and connect both devices to the same Wi-Fi network.
+ADB is installed at `C:\platform-tools\adb.exe`. Enable Wireless debugging and connect both devices to the same Wi-Fi network.
 
-Discover the current connection endpoint:
+Initial pairing (only if not already paired; use the pairing IP and port displayed on the phone):
+
+```powershell
+& "C:\platform-tools\adb.exe" pair IP:PORT
+```
+
+For an already paired device, discover the current connection endpoint if automatic connection is unavailable:
 
 ```powershell
 & "C:\platform-tools\adb.exe" mdns services
 ```
 
-Connect using the IP and port of the `_adb-tls-connect._tcp` service (replace IP:PORT with the actual endpoint):
+Connect using the IP and port of `_adb-tls-connect._tcp`, not the pairing port:
 
 ```powershell
 & "C:\platform-tools\adb.exe" connect IP:PORT
@@ -44,12 +50,10 @@ Verify the connection:
 & "C:\platform-tools\adb.exe" devices
 ```
 
-Install the downloaded APK in place, preserving application data:
+Download the latest published APK to TEMP, install in place and delete the temporary file only after successful installation. Run after confirming the requested release has been published:
 
 ```powershell
-& "C:\platform-tools\adb.exe" install -r "$env:USERPROFILE\Downloads\LifeTrack.apk"
+$p = "$env:TEMP\LifeTrack.apk"; Invoke-WebRequest -Uri "https://github.com/shabydevelop-code/LifeTrack/releases/latest/download/LifeTrack.apk" -OutFile $p -ErrorAction Stop; & "C:\platform-tools\adb.exe" install -r $p; if ($LASTEXITCODE -eq 0) { Remove-Item $p }
 ```
-
-The connection port may change between sessions. Pair again only if the existing pairing is no longer valid.
 
 Development rules: [AGENTS.md](AGENTS.md).
